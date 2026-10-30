@@ -72,7 +72,7 @@ jobs:
             exit 1; }
           # what the build says about sizes and RAM, and any compiler warning in ZINZIN's own code
           tail -n 40 build.log | python3 -c "import sys; t = sys.stdin.read().replace('%', '%25').replace('\r', '').replace('\n', '%0A'); print('::notice title=build::' + t)"
-          grep -E "zinzin/.*warning:" build.log | head -n 60 | python3 -c "import sys; t = sys.stdin.read().replace('%', '%25').replace('\r', '').replace('\n', '%0A'); print('::notice title=warnings::' + (t or 'none'))"
+          { grep -E "zinzin/.*warning:" build.log || true; } | head -n 60 | python3 -c "import sys; t = sys.stdin.read().replace('%', '%25').replace('\r', '').replace('\n', '%0A'); print('::notice title=warnings::' + (t or 'none'))"
       - name: The installer
         run: |
           python3 tools/make_installer.py zinzin/build/*-"$VERSION".fwsc "$VERSION" site
