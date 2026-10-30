@@ -42,11 +42,26 @@ jobs:
         run: |
           sh base/tools/get_toolchain.sh "$HOME/.jieli"
           echo "JIELI_TOOLCHAIN=$HOME/.jieli/toolchain" >> "$GITHUB_ENV"
-      - name: AC79 SDK (the package's three files only)
+      - name: AC79 SDK (the package's three files, as in AC79NN_SDK_V1.2.1, the version fm1-base was tested with)
+        shell: bash
         run: |
-          git clone --depth 1 --filter=blob:none --sparse https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK "$HOME/fw-AC79_AIoT_SDK"
-          git -C "$HOME/fw-AC79_AIoT_SDK" sparse-checkout set cpu/wl82/tools
-          echo "AC79_SDK=$HOME/fw-AC79_AIoT_SDK" >> "$GITHUB_ENV"
+          SDK="$HOME/fw-AC79_AIoT_SDK"
+          git clone -q --filter=blob:none --no-checkout https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK "$SDK"
+          cd "$SDK"
+          git sparse-checkout set --no-cone cpu/wl82/tools/uboot.boot cpu/wl82/tools/cfg_tool.bin cpu/wl82/tools/cfg/eq_cfg_hw.bin
+          want=4e3b4c220dc96641cb5a723f41e68ce41d5261ae9434bb33fbd7f2c59976ded4
+          found=""
+          for ref in $(git log --all --format=%H -- cpu/wl82/tools/uboot.boot); do
+            git checkout -q "$ref" 2>/dev/null || continue
+            if [ "$(sha256sum cpu/wl82/tools/uboot.boot | cut -d' ' -f1)" = "$want" ]; then found="$ref"; break; fi
+          done
+          if [ -z "$found" ]; then
+            echo "::error title=sdk::no commit with V1.2.1's uboot.boot. Tags: $(git tag -l | tr '\n' ' ')"
+            exit 1
+          fi
+          echo "::notice title=sdk::AC79 SDK files from $found ($(git log -1 --format='%ad %s' "$found" | head -c 120))"
+          sha256sum cpu/wl82/tools/uboot.boot cpu/wl82/tools/cfg_tool.bin cpu/wl82/tools/cfg/eq_cfg_hw.bin
+          echo "AC79_SDK=$SDK" >> "$GITHUB_ENV"
       - name: ZINZIN
         shell: bash
         run: |
