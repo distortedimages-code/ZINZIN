@@ -1,0 +1,38 @@
+# ZINZIN: the tests on every push, and the firmware package (zinzin.fwsc) as an artifact.
+# The firmware job fetches JieLi's toolchain (pkgman.jieliapp.com) and the three files of the AC79 SDK a package needs
+# (cpu/wl82/tools, Apache-2.0), as fm1-base's README describes. Not tried yet: adjust if JieLi moves things.
+name: firmware
+on: [push, workflow_dispatch]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install pillow fonttools
+      - run: make test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench
+          path: |
+            build/host_out/*.png
+            build/host_out/*.gif
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: JieLi toolchain
+        run: |
+          sh base/tools/get_toolchain.sh "$HOME/.jieli"
+          echo "JIELI_TOOLCHAIN=$HOME/.jieli/toolchain" >> "$GITHUB_ENV"
+      - name: AC79 SDK (the package's three files only)
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK "$HOME/fw-AC79_AIoT_SDK"
+          git -C "$HOME/fw-AC79_AIoT_SDK" sparse-checkout set cpu/wl82/tools
+          echo "AC79_SDK=$HOME/fw-AC79_AIoT_SDK" >> "$GITHUB_ENV"
+      - run: make firmware
+      - uses: actions/upload-artifact@v4
+        with:
+          name: zinzin-fwsc
+          path: zinzin/build/*.fwsc

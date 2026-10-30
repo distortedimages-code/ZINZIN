@@ -1,0 +1,14 @@
+# ZINZIN's build settings (fm1-base tools/build.py: from base/, `tools/build.py ../zinzin`)
+name = "ZINZIN"
+id_prefix = "FM-1_66"          # package identity: dev FM-1_6600, releases FM-1_66XXYYZZ
+usb_manufacturer = "zinzin"
+usb_product = "ZINZIN FM-1"
+o2 = ["dsp/zz_engine.c", "zz_draw.c"]   # the sound and the screen, at -O2
+include = ["gen", "dsp"]
+words = "words.tsv"
+ble = false                    # no radio: its RAM goes to the echoes and the screen
+# the site (tools/make_site.py)
+tagline = "un Buchla sur une Nintendo, en 240x240"
+repo = ""
+licence = "MPL-2.0"            # to be confirmed: fm1-base lets an app pick its own
+credits = "Built on fm1-base and felucca-bsp (MPL-2.0); fonts Press Start 2P and Terminus (SIL OFL 1.1)."
