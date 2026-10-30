@@ -875,6 +875,8 @@ void zz_render(float *outl, float *outr, uint32_t n)
                 p += (float)DL_N;
             pi = (int32_t)p;
             fr = p - (float)pi;
+            if (pi >= DL_N)
+                pi -= DL_N;
             pn = (pi + 1) % DL_N;
             yL = ((float)dl[pi] + (float)(dl[pn] - dl[pi]) * fr) * IQ;
             p = (float)dw - 2.0f * dT;
@@ -882,6 +884,8 @@ void zz_render(float *outl, float *outr, uint32_t n)
                 p += (float)DL_N;
             pi = (int32_t)p;
             fr = p - (float)pi;
+            if (pi >= DL_N)
+                pi -= DL_N;
             pn = (pi + 1) % DL_N;
             yR = ((float)dl[pi] + (float)(dl[pn] - dl[pi]) * fr) * IQ;
             fbk += c.dDamp * (yR - fbk);
@@ -1026,6 +1030,7 @@ void zz_render(float *outl, float *outr, uint32_t n)
                     qd += (float)WOW_N;
                 qi = (int32_t)qd;
                 qf = qd - (float)qi;
+                qi &= WOW_N - 1;                 /* (-1e-7 + 1024 is 1024 in a float) */
                 qn2 = (qi + 1) & (WOW_N - 1);
                 L = ((float)wl[qi] + (float)(wl[qn2] - wl[qi]) * qf) * IQ;
                 R = ((float)wr[qi] + (float)(wr[qn2] - wr[qi]) * qf) * IQ;

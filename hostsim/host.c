@@ -4,7 +4,8 @@
  *
  *   cc -O2 -DZZ_LIBM -Ihostsim -Izinzin -Izinzin/gen -Izinzin/dsp hostsim/host.c zinzin/zz_draw.c zinzin/dsp/zz_engine.c \
  *      -lm -o build/host
- *   build/host build/host_out        then tools/host_pics.py build/host_out
+ *   build/host build/host_out [film]  then tools/host_pics.py build/host_out (film: the first 95 s of the screen as
+ *                                      raw frames, film.rgb, 12.5 a second, for tools/host_film.sh)
  *
  * This is not fm1-base's simulator (base/host/plat_host.c), which runs the app with the real platform code; it only
  * stands in for the few calls ZINZIN makes, so the app can be looked at and listened to here. */
@@ -42,11 +43,25 @@ void plat_lights(uint32_t buttons, uint32_t keys, uint32_t dim_buttons, uint32_t
     sim_lights[2] = dim_buttons;
     sim_lights[3] = dim_keys;
 }
+static uint32_t midi_q[16];
+static int midi_n;
 int plat_midi_in(uint32_t *pkt, int *port)
 {
-    (void)pkt;
-    (void)port;
-    return 0;
+    int i;
+    if (!midi_n)
+        return 0;
+    *pkt = midi_q[0];
+    if (port)
+        *port = 0;
+    for (i = 1; i < midi_n; i++)
+        midi_q[i - 1] = midi_q[i];
+    midi_n--;
+    return 1;
+}
+static void midi_note(int n, int v)
+{
+    if (midi_n < 16)
+        midi_q[midi_n++] = 0x09u | 0x90u << 8 | (uint32_t)n << 16 | (uint32_t)v << 24;
 }
 uint32_t plat_ticks24(void) { return sim_ms * 24000u; }   /* frozen during a call: a frame is drawn whole */
 int plat_store_load(uint32_t obj, void *dst, uint32_t max)
@@ -89,6 +104,17 @@ static void lcd_blit(uint32_t x, uint32_t y, uint32_t w, uint32_t h, const uint1
 #include "app.c"
 
 /* ------------------------------------------------------------------ outputs */
+static FILE *film;                               /* every 80 ms of the session, the screen (a video's frames) */
+static void film_frame(void)
+{
+    int i;
+    for (i = 0; i < 240 * 240; i++) {
+        uint16_t c = fb[i];
+        unsigned char rgb[3] = {(unsigned char)(((c >> 11) << 3) | (c >> 13)), (unsigned char)((((c >> 5) & 63) << 2) | ((c >> 9) & 3)),
+                                (unsigned char)(((c & 31) << 3) | ((c >> 2) & 7))};
+        fwrite(rgb, 1, 3, film);
+    }
+}
 static void ppm(const char *name)
 {
     char p[256];
@@ -167,6 +193,14 @@ static void tick(void)
         frame_clock += clock() - c0;
     } else if (sim_ms % 4u == 0u)
         app_input_only();
+    if (film && sim_ms % 80u == 0u) {
+        if (sim_ms <= 95000u)
+            film_frame();
+        else {
+            fclose(film);
+            film = 0;
+        }
+    }
     if (clip_until && frames_done != last_clip_frame) {   /* a clip: every new frame */
         char n[64];
         last_clip_frame = frames_done;
@@ -243,6 +277,11 @@ int main(int argc, char **argv)
     char name[64];
     if (argc > 1)
         outdir = argv[1];
+    if (argc > 2 && !strcmp(argv[2], "film")) {
+        char p[300];
+        snprintf(p, sizeof p, "%s/film.rgb", outdir);
+        film = fopen(p, "wb");
+    }
     {
         char p[300];
         snprintf(p, sizeof p, "%s/store_0.bin", outdir);
@@ -354,6 +393,59 @@ int main(int argc, char **argv)
     h_shot("16_pause");
     printf("une image en moyenne : %.2f ms ici (%u images)\n", (double)frame_clock * 1000.0 / CLOCKS_PER_SEC / frames_done,
            frames_done);
+    /* the rest of the panel: REC on MATOU, octaves, PAS on the melodies and BAZAR, mutes, MIDI, all at random */
+    h_press(B_PLAY);
+    h_press(B_SEL);
+    h_press(B_REC);
+    for (k = 0; k < 8; k++) {
+        h_key(WHITE_K[k * 2]);
+        h_run(90);
+    }
+    h_press(B_OCTUP);
+    h_press(B_OCTUP);
+    h_press(B_OCTUP);
+    midi_note(60, 120);
+    midi_note(64, 60);
+    h_run(300);
+    h_press(B_REC);
+    h_press(B_EDIT);
+    h_key(BLACK_K[4]);
+    for (k = 0; k < 16; k += 3)
+        h_key(WHITE_K[k]);
+    h_press(B_LFO);
+    h_key(BLACK_K[2]);
+    h_key(WHITE_K[1]);
+    h_key(WHITE_K[1]);
+    h_press(B_EDIT);
+    h_press(B_HOME);
+    h_press(B_SEQ);
+    h_press(B_OCTDN);
+    h_run(1500);
+    h_shot("17_reste");
+    {
+        uint32_t r = 12345u, t;
+        for (t = 0; t < 2000; t++) {             /* the monkey: 2000 random gestures */
+            uint32_t what;
+            r = r * 1103515245u + 12345u;
+            what = (r >> 16) % 10u;
+            if (what < 3)
+                h_turn((int)((r >> 8) % NE), (int)((r >> 20) % 13u) - 6);
+            else if (what < 6)
+                h_key((int)((r >> 4) % NKEYS));
+            else if (what < 8) {
+                int b = (int)((r >> 12) % NB);
+                if (b != B_SAVE)
+                    h_press(b);
+            } else if (what < 9) {
+                sim_btn |= 1u << B_ARP;
+                h_turn(EN_K1 + (int)((r >> 6) % 4u), (int)((r >> 22) % 9u) - 4);
+                sim_btn &= ~(1u << B_ARP);
+            } else
+                midi_note((int)((r >> 9) % 128u), 1 + (int)((r >> 3) % 127u));
+        }
+        h_run(500);
+        h_shot("18_singe");
+    }
     /* the cost of a frame, busy: two worlds, everything flying, rot */
     h_press(B_PLAY);
     zz_G[ZZ_HUMEUR] = 0.62f;
