@@ -83,12 +83,14 @@ administrateur : `wsl --install -d Debian`, puis redémarrer) :
     cp -r "/mnt/c/Users/<toi>/Documents/ZINZIN FM1" ~/zinzin-fm1 && cd ~/zinzin-fm1
     sh tools/build_wsl.sh               # tout ce qu'il faut, puis la construction
 
-Le script installe ce qui manque, va chercher fm1-base, la chaîne de JieLi et les trois fichiers du SDK, construit, et
-dépose `zinzin.fwsc` et l'installeur dans `Téléchargements\zinzin` côté Windows. L'installation se fait ensuite
-depuis Windows (le FM-1 branché en USB) :
+Le script installe ce qui manque, va chercher fm1-base, la chaîne de JieLi et les trois fichiers du SDK, fait une
+version publiée (`--release 0.1`) et sa page d'installation, puis la sert sur la machine. Dans Edge ou Chrome, ouvrir
+**http://localhost:8000/install/**, cocher **m-bootloader** (écrit juste après ZINZIN : PLAY à l'allumage = menu de
+secours, REC = mode téléchargement) et appuyer sur Install. Le paquet est aussi copié dans `Téléchargements\zinzin`.
 
-    py -m pip install mido python-rtmidi
-    py fm1_install.py zinzin.fwsc
+Si le FM-1 ne répond plus après une installation : REC tenu à l'allumage le met en mode téléchargement (Windows voit
+un disque « WL82 UBOOT1.00 » : ne pas le formater), et [M-Flasher](https://github.com/jvitkauskas/m-flasher)
+(Windows) y remet le firmware d'origine. Le Transporter reste le dernier recours.
 
 Sans rien installer : le workflow GitHub Actions (`.github/workflows/firmware.yml`) fait la même chose et donne le
 `.fwsc` en artefact (pas encore essayé). Pour revenir au firmware d'origine : M-UPGRADE, l'outil de M-VAVE.

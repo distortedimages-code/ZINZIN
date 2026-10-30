@@ -13,4 +13,4 @@ ble = false                    # no radio: its RAM goes to the echoes and the sc
 tagline = "un Buchla sur une Nintendo, en 240x240"
 repo = ""
 licence = "MPL-2.0"            # the same as fm1-base and felucca-bsp: the whole firmware under one licence
-credits = "Built on fm1-base and felucca-bsp (MPL-2.0); fonts Press Start 2P and Terminus (SIL OFL 1.1)."
+credits = "Its own fonts: Press Start 2P and Terminus (SIL OFL 1.1)."
