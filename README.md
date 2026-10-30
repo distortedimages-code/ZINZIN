@@ -80,7 +80,7 @@ AC79 de JieLi. Tout est expliqué dans `base/README.md` ; en bref :
 Sur un PC Windows (une Surface, par exemple), dans WSL (Linux dans Windows ; une fois, dans PowerShell en
 administrateur : `wsl --install -d Debian`, puis redémarrer) :
 
-    cp -r /mnt/c/Users/<toi>/Documents/zinzin-fm1 ~/ && cd ~/zinzin-fm1
+    cp -r "/mnt/c/Users/<toi>/Documents/ZINZIN FM1" ~/zinzin-fm1 && cd ~/zinzin-fm1
     sh tools/build_wsl.sh               # tout ce qu'il faut, puis la construction
 
 Le script installe ce qui manque, va chercher fm1-base, la chaîne de JieLi et les trois fichiers du SDK, construit, et
