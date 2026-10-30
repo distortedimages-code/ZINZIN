@@ -59,7 +59,7 @@ void app_say(const char *a, const char *b) { zz_show_say(a, b); }
 
 /* ------------------------------------------------------------------ the screen: a frame every 80 ms, in bands */
 #define BAND 40
-static struct { int band, active; uint32_t t0; } fr;
+static struct { int band, active; uint32_t t0, fps_t0, fps_n; } fr;
 
 static void draw_band(int b)
 {
@@ -81,8 +81,16 @@ static void draw_service(uint32_t budget_us)
     }
     while (fr.active) {                          /* a few bands a pass: the keys stay quick */
         draw_band(fr.band++);
-        if (fr.band >= 240 / BAND)
+        if (fr.band >= 240 / BAND) {
             fr.active = 0;
+            fr.fps_n++;                          /* frames a second, and the sound's load (ARP + SAVE shows them) */
+            if (now - fr.fps_t0 >= 2000u) {
+                zz_view.fps10 = (int)(fr.fps_n * 10000u / (now - fr.fps_t0));
+                zz_view.cpu = (int)plat_cpu_pct();
+                fr.fps_n = 0;
+                fr.fps_t0 = now;
+            }
+        }
         if ((plat_ticks24() - t0) / PLAT_TICKS_PER_US > budget_us)
             break;
     }
@@ -312,7 +320,10 @@ static void button(int b)
         app_say("enregistre.exe", zz_view.rec ? "J'ÉCOUTE" : "J'ARRÊTE");
         break;
     case B_SAVE:
-        app_say("zinzin.sav", song_save() == 0 ? "SAUVÉ !" : "RATÉ...");
+        if (ui.btn >> B_ARP & 1u)                /* ARP + SAVE: frames a second and the sound's load, top right */
+            zz_view.debug = !zz_view.debug;
+        else
+            app_say("zinzin.sav", song_save() == 0 ? "SAUVÉ !" : "RATÉ...");
         break;
     case B_OCTDN:
     case B_OCTUP: {
@@ -502,10 +513,11 @@ void app_ui_init(void)                           /* (again after an update over 
     zz_draw_start();
 }
 
-void app_input_only(void)
+void app_input_only(void)                        /* the main loop's time between frames: the screen's too */
 {
     input();
     events();
+    draw_service(3000u);
 }
 
 void app_frame(void)

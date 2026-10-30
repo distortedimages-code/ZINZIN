@@ -179,6 +179,27 @@ static void img_line(uint16_t *L, int sy, const zz_img_t *im, int fr, const uint
     x0 = dx < 0 ? 0 : dx;
     x1 = dx + dw > SW ? SW : dx + dw;
     u = (uint32_t)(x0 - dx) * du + (du >> 1);
+    if (!(fl & (F_FLIPX | F_CHECK | F_SIL))) {
+        const int keep0 = !im->t || (fl & F_OPAQUE);   /* colour 0 drawn */
+        if (dw == 2 * sw) {                        /* twice the size (the worlds, the cradle): no stepping */
+            for (x = x0; x < x1; x++) {
+                int sx = sx0 + ((x - dx) >> 1), i = (row[sx >> 1] >> ((sx & 1) ? 0 : 4)) & 15;
+                if (i || keep0)
+                    L[x] = pal[i];
+            }
+        } else {
+            for (x = x0; x < x1; x++, u += du) {
+                int sx = (int)(u >> 16), i;
+                if (sx >= sw)
+                    sx = sw - 1;
+                sx += sx0;
+                i = (row[sx >> 1] >> ((sx & 1) ? 0 : 4)) & 15;
+                if (i || keep0)
+                    L[x] = pal[i];
+            }
+        }
+        return;
+    }
     for (x = x0; x < x1; x++, u += du) {
         int sx = (int)(u >> 16), i;
         if (sx >= sw)
@@ -254,6 +275,45 @@ static void aff_row(uint16_t *L, int sy, const aff_t *f)
     if (x1 > SW)
         x1 = SW;
     fy = sy - f->cy;
+    {   /* only the run where 0 <= u < w and 0 <= v < h: along the row, u and v are straight lines */
+        float uf = (float)(f->b * fy + hw), vf = (float)(f->d * fy + hh), lo = (float)(x0 - f->cx),
+              hi = (float)(x1 - f->cx), W = (float)((int32_t)im->w << 16), H = (float)((int32_t)im->h << 16);
+        const float A = (float)f->a, C = (float)f->c;
+        if (A > 0.5f || A < -0.5f) {
+            float e0 = -uf / A, e1 = (W - uf) / A;
+            if (e0 > e1) {
+                float t = e0;
+                e0 = e1;
+                e1 = t;
+            }
+            if (e0 - 1.0f > lo)
+                lo = e0 - 1.0f;
+            if (e1 + 1.0f < hi)
+                hi = e1 + 1.0f;
+        } else if (uf < 0.0f || uf >= W)
+            return;
+        if (C > 0.5f || C < -0.5f) {
+            float e0 = -vf / C, e1 = (H - vf) / C;
+            if (e0 > e1) {
+                float t = e0;
+                e0 = e1;
+                e1 = t;
+            }
+            if (e0 - 1.0f > lo)
+                lo = e0 - 1.0f;
+            if (e1 + 1.0f < hi)
+                hi = e1 + 1.0f;
+        } else if (vf < 0.0f || vf >= H)
+            return;
+        if (hi <= lo)
+            return;
+        x0 = f->cx + (int)zz_floorf(lo);
+        x1 = f->cx + (int)zz_floorf(hi) + 1;
+        if (x0 < 0)
+            x0 = 0;
+        if (x1 > SW)
+            x1 = SW;
+    }
     u = f->a * (x0 - f->cx) + f->b * fy + hw;
     v = f->c * (x0 - f->cx) + f->d * fy + hh;
     for (x = x0; x < x1; x++, u += f->a, v += f->c) {
@@ -367,14 +427,38 @@ static void bevel_row(uint16_t *L, int sy, int x, int y, int w, int h, int inset
     }
 }
 #define TITLE_H 12
+static struct { uint32_t c0, c1; int w; uint16_t px[SW]; } grad[4];   /* the title bars' gradients, kept */
+static int grad_next;
+static const uint16_t *gradient(uint32_t c0, uint32_t c1, int w)
+{
+    int i, k;
+    if (w > SW)
+        w = SW;
+    for (k = 0; k < 4; k++)
+        if (grad[k].w == w && grad[k].c0 == c0 && grad[k].c1 == c1)
+            return grad[k].px;
+    k = grad_next;
+    grad_next = (grad_next + 1) & 3;
+    for (i = 0; i < w; i++)
+        grad[k].px[i] = mix565(ZH(c0), ZH(c1), i * 256 / (w > 1 ? w - 1 : 1));
+    grad[k].c0 = c0;
+    grad[k].c1 = c1;
+    grad[k].w = w;
+    return grad[k].px;
+}
 static void title_row(uint16_t *L, int sy, int x, int y, int w, uint32_t c0, uint32_t c1, const char *title)
 {
-    int r = sy - y, i;
-    uint16_t a = ZH(c0), b = ZH(c1);
+    int r = sy - y, i, i0, i1;
+    const uint16_t *g;
     if (r < 0 || r >= TITLE_H)
         return;
-    for (i = 0; i < w; i++)
-        pset(L, x + i, mix565(a, b, i * 256 / (w > 1 ? w - 1 : 1)));
+    if (w > SW)
+        w = SW;
+    g = gradient(c0, c1, w);
+    i0 = x < 0 ? -x : 0;
+    i1 = x + w > SW ? SW - x : w;
+    for (i = i0; i < i1; i++)
+        L[x + i] = g[i];
     text_row(L, sy, &ZZ_FONT_T, x + 3, y, title, C_WHITE0);
     bevel_row(L, sy, x + w - 12, y + 1, 11, 10, 0);
     for (i = 0; i < 5; i++)
@@ -455,7 +539,8 @@ static struct {
     float bp;
     int16_t herd_x[3], herd_y[3], herd_s;
     uint16_t herd_c;
-    float bird_zoom, bird_rot;
+    float bird_zoom, bird_rot, bird_co, bird_si, laser_x2[2], laser_y2[2];
+    int16_t wjit[3][3], word_cy[6];
     int16_t cat_off[4][64];
     float eyes[2][2];
     int neyes, eye_fx, laser;
@@ -493,6 +578,29 @@ static int nrain;
 static uint16_t rain_c;
 #define NAFF 64
 static aff_t affs[NAFF] PLAT_POOL;
+/* sprites placed once a frame (ambient things, clouds, tears): a row only compares integers */
+typedef struct { const zz_img_t *im; int16_t x, y, w, h; uint8_t z; uint16_t c; } place_t;
+#define NPL (NAMB + 4)
+static place_t amb_pl[NPL] PLAT_POOL, tear_pl[NTEAR] PLAT_POOL;
+static int namb_pl, ntear_pl;
+static void place(place_t *p, const zz_img_t *im, float cx, float cy, float s, int z)
+{
+    p->im = im;
+    p->w = (int16_t)iround((float)im->w * s);
+    p->h = (int16_t)iround((float)im->h * s);
+    p->x = (int16_t)iround(cx - (float)p->w * 0.5f);
+    p->y = (int16_t)iround(cy - (float)p->h * 0.5f);
+    p->z = (uint8_t)z;
+}
+static inline void place_row(uint16_t *L, int sy, const place_t *p)
+{
+    if (sy < p->y || sy >= p->y + p->h)
+        return;
+    if (!p->im)
+        hspan(L, p->x, p->x + p->w, p->c);
+    else
+        img_line(L, sy, p->im, 0, p->im->pal, (sy - p->y) * p->im->h / p->h, p->x, p->w, 0, p->im->w, 0, 0);
+}
 static int naff;
 static uint8_t fire[80 * 52] PLAT_POOL;   /* (the pool: the RAM proper is the platform's) */
 
@@ -823,6 +931,38 @@ static void scene_update(void)
     if (vs.vt > 6283.1853f)                      /* 1000 turns: the whole multiples of vt come round */
         vs.vt -= 6283.1853f;
     amb_update(sp);
+    namb_pl = 0;
+    for (i = 0; i < 3; i++) {                      /* the grey world's clouds */
+        float x = vs.vt * 6.0f + (float)i * 90.0f;
+        x -= zz_floorf(x / (float)(SW + 60)) * (float)(SW + 60);
+        place(&amb_pl[namb_pl++], &ZZ_S_RAIN, x - 30.0f, 22.0f + (float)i * 14.0f, 3.0f, 3);
+    }
+    for (i = 0; i < namb; i++) {
+        float ph = amb[i].ph;
+        place_t *p = &amb_pl[namb_pl];
+        switch (amb[i].z) {
+        case 0:
+            place(p, DRAW[amb[i].k], amb[i].x + zz_sinf(vs.vt * 2.0f + ph) * 6.0f, amb[i].y, ph > 3.0f ? 2.0f : 1.0f, 0);
+            break;
+        case 2:                                    /* embers: 2 x 2 */
+            p->im = 0;
+            p->x = (int16_t)iround(amb[i].x + zz_sinf(vs.vt * 3.0f + ph) * 4.0f);
+            p->y = (int16_t)iround(amb[i].y);
+            p->w = p->h = 2;
+            p->z = 2;
+            p->c = ((int)(ph * 10.0f) % 2) ? ZH(0xffb000) : ZH(0xff4a1a);
+            break;
+        case 3:
+            place(p, &ZZ_S_SKULL, amb[i].x + zz_sinf(vs.vt * 2.0f + ph) * 8.0f, amb[i].y, 2.0f, 2);
+            break;
+        case 4:
+            place(p, &ZZ_S_BROKEN, amb[i].x + zz_sinf(vs.vt + ph) * 4.0f, amb[i].y, ph > 4.0f ? 2.0f : 1.0f, 3);
+            break;
+        default:
+            continue;                              /* (shooting stars: segments) */
+        }
+        namb_pl++;
+    }
     /* the worlds: the two heaviest, cross-faded by a dither mask */
     {
         int o[4] = {0, 1, 2, 3}, a, c;
@@ -890,6 +1030,8 @@ static void scene_update(void)
         vs.bird_mode = ch < 0.2f ? 0 : (ch < 0.45f ? 1 : (ch < 0.7f ? 2 : (ch < 0.88f ? 3 : 4)));
         vs.bird_zoom = 1.0f + (float)iround(vs.bird_kick * 4.0f * (0.5f + d[ZZ_BIDOCHE])) / 32.0f;
         vs.bird_rot = vs.bird_mode == 3 ? vs.vt * 1.4f : 0.0f;
+        vs.bird_co = zz_cosf(vs.bird_rot) / vs.bird_zoom;
+        vs.bird_si = zz_sinf(vs.bird_rot) / vs.bird_zoom;
     }
     /* the cat: BIDOCHE its size (then Warhol), CHATOUILLE the wobble and the colour split */
     {
@@ -921,6 +1063,13 @@ static void scene_update(void)
         vs.eye_fx = vs.euph > 0.4f ? 1 : (vs.w[0] > 0.3f ? 2 : 0);
         vs.laser = h > 0.62f && vs.neyes;
         vs.laser_ang = 0.32f + zz_sinf(vs.vt * 3.0f) * 0.08f + (ur() - 0.5f) * 0.05f;
+        for (i = 0; i < vs.neyes; i++) {
+            vs.laser_x2[i] = vs.eyes[i][0] + zz_cosf(vs.laser_ang) * 320.0f;
+            vs.laser_y2[i] = vs.eyes[i][1] + zz_sinf(vs.laser_ang) * 320.0f;
+        }
+        for (i = 0; i < 3; i++)
+            for (j = 0; j < 3; j++)
+                vs.wjit[i][j] = (int16_t)iround(zz_sinf(vs.vt * 6.0f + (float)(i * 2 + j)) * ch * 3.0f);
     }
     /* flyers: physics, then their turned-sprite maps (after-images first) */
     naff = 0;
@@ -1026,6 +1175,9 @@ static void scene_update(void)
             ntear--;
         }
     }
+    for (i = 0; i < ntear; i++)
+        place(&tear_pl[i], &ZZ_S_TEAR, tears[i].x, tears[i].y, 2.0f, 0);
+    ntear_pl = ntear;
     /* pop-ups */
     for (i = 0; i < npop; i++) {
         pop_t *p = &pops[i];
@@ -1050,6 +1202,8 @@ static void scene_update(void)
     }
     /* the big ZINZIN, while nothing plays */
     vs.word = zz_view.splash || (!zz_view.playing && now - zz_view.note_ms > 8000u);
+    for (i = 0; i < 6; i++)
+        vs.word_cy[i] = (int16_t)iround(118.0f + zz_sinf(vs.t * 4.0f + (float)i * 0.7f) * 9.0f);
     /* the marquee */
     vs.marq_w = ztext_w(&ZZ_FONT_S, MARQ[vs.z]);
     vs.marq_off = -(int)((float)vs.frame * (1.0f + vs.EG[ZZ_CAFEINE] * 4.0f)) % (vs.marq_w ? vs.marq_w : 1);
@@ -1138,10 +1292,9 @@ static void world_row(int w, int sy, uint16_t *L)
                 hspan(L, 120 + xi, 120 + xo, ZH(RB[i]));
             }
         }
-        for (i = 0; i < namb; i++)
-            if (amb[i].z == 0)
-                spr_row(L, sy, DRAW[amb[i].k], 0, amb[i].x + zz_sinf(vs.vt * 2.0f + amb[i].ph) * 6.0f, amb[i].y,
-                        amb[i].ph > 3.0f ? 2.0f : 1.0f, 0, 0);
+        for (i = 0; i < namb_pl; i++)
+            if (amb_pl[i].z == 0)
+                place_row(L, sy, &amb_pl[i]);
     } else if (w == 1) {                              /* cosmos: stars scrolling, a striped sun, a grid to the horizon */
         const int hz = 140;
         int o = (int)(vs.vt * 12.0f) % SW;
@@ -1186,24 +1339,14 @@ static void world_row(int w, int sy, uint16_t *L)
                     L[x] = pal_fire[v > 36 ? 36 : v];
             }
         }
-        for (i = 0; i < namb; i++) {
-            if (amb[i].z == 2)
-                rect_row(L, sy, iround(amb[i].x + zz_sinf(vs.vt * 3.0f + amb[i].ph) * 4.0f), iround(amb[i].y), 2, 2,
-                         ((int)(amb[i].ph * 10.0f) % 2) ? ZH(0xffb000) : ZH(0xff4a1a));
-            else if (amb[i].z == 3)
-                spr_row(L, sy, &ZZ_S_SKULL, 0, amb[i].x + zz_sinf(vs.vt * 2.0f + amb[i].ph) * 8.0f, amb[i].y, 2.0f, 0, 0);
-        }
+        for (i = 0; i < namb_pl; i++)
+            if (amb_pl[i].z == 2)
+                place_row(L, sy, &amb_pl[i]);
     } else {                                          /* grey: the meadow without colour, clouds, broken hearts */
         img_line(L, sy, &ZZ_MEADOW, 0, pal_meadow_g, sy >> 1, 0, SW, 0, 120, F_OPAQUE, 0);
-        for (i = 0; i < 3; i++) {
-            float x = vs.vt * 6.0f + (float)i * 90.0f;
-            x -= zz_floorf(x / (float)(SW + 60)) * (float)(SW + 60);
-            spr_row(L, sy, &ZZ_S_RAIN, 0, x - 30.0f, 22.0f + (float)i * 14.0f, 3.0f, 0, 0);
-        }
-        for (i = 0; i < namb; i++)
-            if (amb[i].z == 4)
-                spr_row(L, sy, &ZZ_S_BROKEN, 0, amb[i].x + zz_sinf(vs.vt + amb[i].ph) * 4.0f, amb[i].y,
-                        amb[i].ph > 4.0f ? 2.0f : 1.0f, 0, 0);
+        for (i = 0; i < namb_pl; i++)
+            if (amb_pl[i].z == 3)
+                place_row(L, sy, &amb_pl[i]);
     }
 }
 
@@ -1231,9 +1374,9 @@ static void bird_row(int sy, uint16_t *L)
     int32_t u, v, du, dv;
     if (sy < by || sy >= by + bs)
         return;
-    iz = 1.0f / vs.bird_zoom;
-    co = zz_cosf(vs.bird_rot) * iz;
-    si = zz_sinf(vs.bird_rot) * iz;
+    (void)iz;
+    co = vs.bird_co;
+    si = vs.bird_si;
     fy = (float)(sy - by) - bs * 0.5f + 0.5f;
     /* box pixel (x, sy) -> picture pixel: undo the zoom and the turn, around the centre */
     du = (int32_t)(co * 65536.0f);
@@ -1324,7 +1467,7 @@ static void cat_row(int sy, uint16_t *L)
         if (sy >= y0 && sy < y0 + area) {
             j = (int)((float)(sy - y0) / cs);
             for (i = 0; i < n; i++) {
-                int jit = iround(zz_sinf(vs.vt * 6.0f + (float)(i * 2 + j)) * vs.ET[1][ZZ_CHATOUILLE] * 3.0f),
+                int jit = vs.wjit[i][j < 3 ? j : 2],
                     cy0 = iround((float)y0 + (float)j * cs), ch = (int)(cs + 0.999f);
                 img_row(L, sy, &ZZ_CAT, 0, pal_warhol[(i + j * n + (int)((vs.frame >> 1) % 4u)) % 4],
                         iround((float)x0 + (float)i * cs) + jit, cy0, ch, ch, 0, 0, 64, 64, F_OPAQUE, 0);
@@ -1358,8 +1501,7 @@ static void cat_row(int sy, uint16_t *L)
     }
     if (vs.laser)
         for (i = 0; i < vs.neyes; i++) {
-            float ex = vs.eyes[i][0], ey = vs.eyes[i][1], x2 = ex + zz_cosf(vs.laser_ang) * 320.0f,
-                  y2 = ey + zz_sinf(vs.laser_ang) * 320.0f;
+            float ex = vs.eyes[i][0], ey = vs.eyes[i][1], x2 = vs.laser_x2[i], y2 = vs.laser_y2[i];
             seg_row(L, sy, ex, ey, x2, y2, 6.0f, ZH(0xff1a1a));
             seg_row(L, sy, ex, ey, x2, y2, 2.0f, ZH(0xffd0c8));
             rect_row(L, sy, iround(ex) - 4, iround(ey) - 4, 8, 8, ZH(0xff4a3a));
@@ -1374,8 +1516,8 @@ static void moodfx_row(int sy, uint16_t *L)
     for (i = 0; i < nrain; i++)
         if (sy >= rain_y[i] && sy <= rain_y[i] + 8)
             pset(L, rain_x[i] - (sy - rain_y[i]) * 3 / 8, rain_c);
-    for (i = 0; i < ntear; i++)
-        spr_row(L, sy, &ZZ_S_TEAR, 0, tears[i].x, tears[i].y, 2.0f, 0, 0);
+    for (i = 0; i < ntear_pl; i++)
+        place_row(L, sy, &tear_pl[i]);
 }
 
 static void pops_row(int sy, uint16_t *L)
@@ -1438,7 +1580,7 @@ static void word_row(int sy, uint16_t *L)
     int i, d;
     if (sy >= 80 && sy < 160)
         for (i = 0; i < 6; i++) {
-            int cx = 48 + 24 * i + 12, cy = iround(118.0f + zz_sinf(vs.t * 4.0f + (float)i * 0.7f) * 9.0f), x = cx - 12,
+            int cx = 48 + 24 * i + 12, cy = vs.word_cy[i], x = cx - 12,
                 y = cy - 12;
             for (d = 6; d > 0; d--)
                 big_glyph(L, sy, TXT[i], x + d, y + d, 3, d > 3 ? ZH(0x1d1730) : ZH(0x4a35a6), 0);
@@ -1474,9 +1616,25 @@ static void hud_row(int sy, uint16_t *L)
         hspan(L, 0, SW, ZH(TOP[z]));
         text_row(L, sy, &ZZ_FONT_S, vs.marq_off, 2, MARQ[z], ZH(TXT[z]));
         text_row(L, sy, &ZZ_FONT_S, vs.marq_off + vs.marq_w, 2, MARQ[z], ZH(TXT[z]));
-        hspan(L, SW - 58, SW, C_BLACK0);
-        num_text(vs.hits % 1000000u, 6, t);
-        text_row(L, sy, &ZZ_FONT_S, SW - 54, 2, t, ZH(0x43ff86));
+        if (zz_view.debug) {                     /* frames a second and the sound's load, in the counter's place */
+            char d[12];
+            int f = zz_view.fps10, c = zz_view.cpu > 99 ? 99 : zz_view.cpu;
+            d[0] = (char)('0' + (f / 100) % 10);
+            d[1] = (char)('0' + (f / 10) % 10);
+            d[2] = '.';
+            d[3] = (char)('0' + f % 10);
+            d[4] = ' ';
+            d[5] = (char)('0' + c / 10);
+            d[6] = (char)('0' + c % 10);
+            d[7] = '%';
+            d[8] = 0;
+            hspan(L, SW - 68, SW, C_BLACK0);
+            text_row(L, sy, &ZZ_FONT_S, SW - 66, 2, d, ZH(0xfff36b));
+        } else {
+            hspan(L, SW - 58, SW, C_BLACK0);
+            num_text(vs.hits % 1000000u, 6, t);
+            text_row(L, sy, &ZZ_FONT_S, SW - 54, 2, t, ZH(0x43ff86));
+        }
         return;
     }
     if (sy >= SW - 17 && !zz_view.splash) {
@@ -1649,6 +1807,14 @@ static void post_row(int y, uint16_t *out)
         cached_sy = sy;
         cached_frame = vs.frame;
     }
+    if (vs.bl == 1 && !vs.lv && !vs.bw_th && !vs.mul && !vs.dark && !vs.fa) {   /* nothing but the shift */
+        for (x = 0; x < SW; x++) {
+            int xs = vs.mirror ? SW - 1 - (x - dx) : x - dx;
+            uint16_t c = (unsigned)xs < SW ? LB[xs] : 0;
+            out[x] = (uint16_t)((c >> 8) | (c << 8));
+        }
+        return;
+    }
     for (x = 0; x < SW; x++) {
         int xs = (vs.bl > 1 ? (x / vs.bl) * vs.bl : x) - dx;
         uint16_t c;
@@ -1665,7 +1831,7 @@ static void post_row(int y, uint16_t *out)
         }
         if (vs.bw_th && by[x & 3] < vs.bw_th) {  /* the low mood: grey, through the dither */
             int l = (c_r(c) * 77 + c_g(c) * 151 + c_b(c) * 28) >> 8;
-            c = c565(l, l, l);
+            c = (uint16_t)(((l >> 3) << 11) | ((l >> 2) << 5) | (l >> 3));
         }
         if (vs.mul)                              /* PLONGE: under water */
             c = vs.mul == 1 ? c565(c_r(c) >> 1, c_g(c) >> 1, c_b(c)) : c565(c_r(c) * 3 >> 4, c_g(c) * 3 >> 4, c_b(c) * 5 >> 3);

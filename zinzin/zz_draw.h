@@ -8,6 +8,7 @@
 
 typedef struct {
     int sel, step_mode, lane, rec, playing, cur_step, splash;   /* the track picked, PAS, its lane, ENREGISTRE... */
+    int debug, fps10, cpu;                                      /* ARP + SAVE: frames a second (x10) and the sound's load */
     uint32_t beat_ms, beat_n, note_ms;
     const int8_t (*drum)[16];                                   /* the song's patterns, for the step strip */
     const int8_t *bz, *syn_a, *bas_a;

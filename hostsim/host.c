@@ -65,7 +65,8 @@ static void midi_note(int n, int v)
     if (midi_n < 16)
         midi_q[midi_n++] = 0x09u | 0x90u << 8 | (uint32_t)n << 16 | (uint32_t)v << 24;
 }
-uint32_t plat_ticks24(void) { return sim_ms * 24000u; }   /* frozen during a call: a frame is drawn whole */
+uint32_t plat_ticks24(void) { return sim_ms * 24000u; }
+uint32_t plat_cpu_pct(void) { return 0; }   /* frozen during a call: a frame is drawn whole */
 int plat_store_load(uint32_t obj, void *dst, uint32_t max)
 {
     char p[256];
@@ -193,8 +194,11 @@ static void tick(void)
         next_frame = sim_ms + 16u;
         app_frame();
         frame_clock += clock() - c0;
-    } else if (sim_ms % 4u == 0u)
+    } else if (sim_ms % 4u == 0u) {
+        clock_t c0 = clock();
         app_input_only();
+        frame_clock += clock() - c0;
+    }
     if (film && sim_ms % 80u == 0u) {
         if (sim_ms <= 95000u)
             film_frame();
@@ -447,6 +451,11 @@ int main(int argc, char **argv)
         }
         h_run(500);
         h_shot("18_singe");
+        sim_btn |= 1u << B_ARP;                  /* ARP + SAVE: the frames-a-second readout */
+        h_press(B_SAVE);
+        sim_btn &= ~(1u << B_ARP);
+        h_run(300);
+        h_shot("19_debug");
     }
     /* the cost of a frame, busy: two worlds, everything flying, rot */
     h_press(B_PLAY);

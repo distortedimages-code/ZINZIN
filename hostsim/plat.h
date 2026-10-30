@@ -24,5 +24,6 @@ uint32_t plat_master(void);
 void plat_lights(uint32_t buttons, uint32_t keys, uint32_t dim_buttons, uint32_t dim_keys, int glow);
 int plat_midi_in(uint32_t *pkt, int *port);
 uint32_t plat_ticks24(void);
+uint32_t plat_cpu_pct(void);
 int plat_store_load(uint32_t obj, void *dst, uint32_t max);
 int plat_store_save(uint32_t obj, const void *src, uint32_t len);
