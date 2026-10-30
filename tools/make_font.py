@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (C) 2026 Yoann
 """ZINZIN: the pixel fonts as C bitmaps (Latin-1, accents included), all crisp at their design size.
 
     ZZ_FONT_S  Press Start 2P, 8 px        (the marquee, counters, labels, the big ZINZIN)

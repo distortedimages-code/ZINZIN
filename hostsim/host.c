@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN's own test bench: the whole app (app.c and the engine) on a computer, driven by a script of presses and
  * turns on a simulated clock. It writes the screen as pictures (build/host_out/ *.ppm, and the frames of a few clips) and
  * the sound as a WAV, and checks a few things on the way (no NaN, the song saved and loaded back, levels).

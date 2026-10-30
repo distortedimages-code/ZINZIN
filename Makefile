@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (C) 2026 Yoann
 # ZINZIN: everything that runs on a computer. The firmware itself is built by fm1-base (base/, a submodule).
 CC ?= cc
 CFLAGS = -O2 -std=c99 -ffp-contract=off -Wall -Wextra -Wno-unused-parameter -Wno-unused-function -DZZ_LIBM

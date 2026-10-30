@@ -142,8 +142,9 @@ retire ses copies désaccordées et son chorus, puis les remet après 15 s de ca
 
 ## Licences
 
-- fm1-base et felucca-bsp : MPL-2.0 (une app construite dessus choisit sa licence). Le code de ZINZIN : **à choisir**
-  (MPL-2.0 en attendant, dans `fm1.toml`).
+- **ZINZIN : MPL-2.0** (`LICENSE`), comme fm1-base et felucca-bsp : tout le firmware sous une seule licence. C'est
+  une copyleft par fichier : qui modifie un fichier de ZINZIN et le distribue doit en publier la version modifiée,
+  mais chacun peut combiner ZINZIN avec son propre code, sous la licence qu'il veut.
 - Polices : Press Start 2P (CodeMan38) et Terminus (Dimitar Zhekov), SIL OFL 1.1, licences dans `assets/fonts/`.
 - Images : `assets/png/`. Les photos (le chat, le cacatoès, le pendule de Newton, la tasse, la pièce, la lune, le
   cheval, la prairie, l'espace) viennent des images d'exemple d'imageio / scikit-image (domaine public d'après leur

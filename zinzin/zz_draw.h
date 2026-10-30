@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN's screen (zz_draw.c, a unit of its own at -O2): the scene and its rows. The app (app.c) owns the panel, the
  * song and the panel's canvas; it tells the screen what it shows through zz_view, starts a frame with zz_frame_start
  * and fetches its rows band by band (zz_rows), which it sends with lcd_blit. All of it runs in the main loop. */

@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN: a four-track groovebox for the M-VAVE FM-1 that looks like a personal web page from 1999.
  * This header is the app's half of the contract with fm1-base (base/device/unity.c, base/host/plat_host.c). */
 #pragma once

@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (C) 2026 Yoann
 # ZINZIN: the test bench's session as a video, the screen (x2, sharp pixels) and the sound together.
 #   build/host build/host_out film && sh tools/host_film.sh build/host_out
 set -e

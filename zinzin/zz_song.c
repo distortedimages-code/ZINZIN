@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN: the song. Melodies are kept as scale degrees, so HUMEUR recolours the same tune: seven moods from
  * euphoria (lydian) down to the low one (locrian), and the drums follow the mood until someone edits them.
  * Part of app.c's unity build (ur(), the panel's dice, is app.c's). */

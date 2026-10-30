@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (C) 2026 Yoann
 """ZINZIN: the pictures as C tables for the FM-1.
 
 Every picture is 16 colours (4 bits a pixel, two pixels a byte, the left one in the high nibble) with its own

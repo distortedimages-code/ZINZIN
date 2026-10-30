@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN: the engine alone, on a computer (the C library's maths: -DZZ_LIBM). The same runs as the browser
  * proto's test: levels, no NaN, every bêtise, the RAM it takes; and a WAV of each run to listen to.
  *

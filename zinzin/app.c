@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN for the M-VAVE FM-1: four tracks (BOUM the drums, MATOU the synth, MAMMOUTH the bass, BAZAR the bêtises on
  * the whole mix), knobs that are bundles of controls that drift on their own, and a screen that looks like a personal
  * web page from 1999 and reacts to all of it.

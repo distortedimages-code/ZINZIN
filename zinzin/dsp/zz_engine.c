@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN's sound engine (zz_engine.h). Single precision, no libm (zz_math.h), 44.1 kHz.
  *
  * Per track the same four macros: BIDOCHE (weight), CHATOUILLE (character, with notches that switch it at once),

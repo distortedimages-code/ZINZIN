@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN's sound: four tracks (BOUM the drums, MATOU the synth, MAMMOUTH the bass, BAZAR the bêtises on the whole
  * mix), a 16-step sequencer, the shared space (echoes, an empty room), the tape rot and the glue.
  *

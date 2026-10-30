@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN's own test bench: the part of fm1-base's platform interface (base/include/plat.h) that ZINZIN uses, with
  * the same names and values, so app.c builds on a computer without the platform. The firmware itself is built
  * against the real plat.h. */

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (C) 2026 Yoann
 # ZINZIN's build settings (fm1-base tools/build.py: from base/, `tools/build.py ../zinzin`)
 name = "ZINZIN"
 id_prefix = "FM-1_66"          # package identity: dev FM-1_6600, releases FM-1_66XXYYZZ
@@ -10,5 +12,5 @@ ble = false                    # no radio: its RAM goes to the echoes and the sc
 # the site (tools/make_site.py)
 tagline = "un Buchla sur une Nintendo, en 240x240"
 repo = ""
-licence = "MPL-2.0"            # to be confirmed: fm1-base lets an app pick its own
+licence = "MPL-2.0"            # the same as fm1-base and felucca-bsp: the whole firmware under one licence
 credits = "Built on fm1-base and felucca-bsp (MPL-2.0); fonts Press Start 2P and Terminus (SIL OFL 1.1)."

@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN: the screen. A scanline renderer: there is no frame buffer (the FM-1 has no RAM for one), so the picture
  * is a scene (worlds, the herd, the windows, the webcam, the cat, flyers, pop-ups, rain, the HUD) that can draw any
  * one of its rows on demand. The whole-screen effects then cost nothing: a row can be fetched from another height,

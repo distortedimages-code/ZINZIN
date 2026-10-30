@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0
+ * Copyright (C) 2026 Yoann */
 /* ZINZIN: the maths the engine uses. On the FM-1 (and in fm1-base's host simulator) it is fm1-base's fastmath.h,
  * single precision with no libm; ZZ_LIBM maps the same names to the C library, for the project's own test bench. */
 #pragma once

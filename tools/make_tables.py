@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (C) 2026 Yoann
 """ZINZIN: the engine's sine table (4096 points + 2 guard points), const so it stays in flash.
 
     python3 tools/make_tables.py            -> zinzin/gen/zz_tables.h

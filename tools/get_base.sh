@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (C) 2026 Yoann
 # ZINZIN: fetch fm1-base (and felucca-bsp inside it) into base/, at the commit ZINZIN was written against.
 # (A git clone --recursive of this repository does the same.)
 set -e

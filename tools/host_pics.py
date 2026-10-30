@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (C) 2026 Yoann
 """ZINZIN: the test bench's screens as pictures. Every build/host_out/*.ppm becomes a PNG; the clips' frames become
 animated GIFs (12.5 frames a second, as on the FM-1); and a contact sheet of the stills, with their names.
 

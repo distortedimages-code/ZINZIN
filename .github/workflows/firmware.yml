@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+# Copyright (C) 2026 Yoann
 # ZINZIN: the tests on every push, and the firmware package (zinzin.fwsc) as an artifact.
 # The firmware job fetches JieLi's toolchain (pkgman.jieliapp.com) and the three files of the AC79 SDK a package needs
 # (cpu/wl82/tools, Apache-2.0), as fm1-base's README describes. Not tried yet: adjust if JieLi moves things.
