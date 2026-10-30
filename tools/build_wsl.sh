@@ -8,12 +8,12 @@
 set -e
 cd "$(dirname "$0")/.."
 need=""
-for p in git curl xz python3 make; do command -v "$p" >/dev/null 2>&1 || need=1; done
+for p in git curl xz python3; do command -v "$p" >/dev/null 2>&1 || need=1; done
 python3 -c "import PIL" 2>/dev/null || need=1
 if [ -n "$need" ]; then
-    echo "== the tools (git, curl, xz, python3 with Pillow, make)"
+    echo "== the tools (git, curl, xz, python3 with Pillow)"
     sudo apt-get update
-    sudo apt-get install -y git curl xz-utils python3 python3-pil make ca-certificates
+    sudo apt-get install -y git curl xz-utils python3 python3-pil ca-certificates
 fi
 echo "== fm1-base"
 sh tools/get_base.sh
@@ -33,7 +33,7 @@ if [ ! -f "$SDK/cpu/wl82/tools/uboot.boot" ]; then
 fi
 export AC79_SDK="$SDK"
 echo "== ZINZIN"
-make firmware
+(cd base && python3 tools/build.py ../zinzin)   # (what make firmware does)
 F=$(ls zinzin/build/*.fwsc | head -1)
 echo "firmware: $F"
 if command -v wslpath >/dev/null 2>&1 && command -v cmd.exe >/dev/null 2>&1; then
