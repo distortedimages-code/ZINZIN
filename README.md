@@ -71,7 +71,7 @@ personne ne l'a éditée.
 Il faut la chaîne de compilation de JieLi (Linux x86-64 ; sur Mac elle tourne dans Docker) et trois fichiers du SDK
 AC79 de JieLi. Tout est expliqué dans `base/README.md` ; en bref :
 
-    git clone --recursive <ce dépôt> zinzin-fm1 && cd zinzin-fm1
+    git clone --recursive <ce dépôt> zinzin-fm1 && cd zinzin-fm1   # ou, depuis le zip : sh tools/get_base.sh
     sh base/tools/get_toolchain.sh ~/.jieli && export JIELI_TOOLCHAIN=~/.jieli/toolchain
     git clone https://gitee.com/Jieli-Tech/fw-AC79_AIoT_SDK ~/fw-AC79_AIoT_SDK   # (AC79_SDK si ailleurs)
     make firmware                       # -> zinzin/build/zinzin.fwsc
@@ -138,7 +138,7 @@ retire ses copies désaccordées et son chorus, puis les remet après 15 s de ca
 | `zinzin/gen/` | images, polices, table de sinus, générées par `tools/` depuis `assets/` (`make gen`) |
 | `zinzin/fm1.toml`, `words.tsv` | réglages de construction ; mots pour un lecteur d'écran |
 | `tests/`, `hostsim/` | le banc d'essai |
-| `base/` | fm1-base (sous-module) |
+| `base/` | fm1-base (sous-module, ou `sh tools/get_base.sh`) |
 
 ## Licences
 
