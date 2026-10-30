@@ -77,8 +77,21 @@ AC79 de JieLi. Tout est expliqué dans `base/README.md` ; en bref :
     make firmware                       # -> zinzin/build/zinzin.fwsc
     python3 base/tools/fm1_install.py zinzin/build/zinzin.fwsc
 
-Sans machine Linux : le workflow GitHub Actions (`.github/workflows/firmware.yml`) fait la même chose et donne le
-`.fwsc` en artefact (pas encore essayé).
+Sur un PC Windows (une Surface, par exemple), dans WSL (Linux dans Windows ; une fois, dans PowerShell en
+administrateur : `wsl --install -d Debian`, puis redémarrer) :
+
+    cp -r /mnt/c/Users/<toi>/Documents/zinzin-fm1 ~/ && cd ~/zinzin-fm1
+    sh tools/build_wsl.sh               # tout ce qu'il faut, puis la construction
+
+Le script installe ce qui manque, va chercher fm1-base, la chaîne de JieLi et les trois fichiers du SDK, construit, et
+dépose `zinzin.fwsc` et l'installeur dans `Téléchargements\zinzin` côté Windows. L'installation se fait ensuite
+depuis Windows (le FM-1 branché en USB) :
+
+    py -m pip install mido python-rtmidi
+    py fm1_install.py zinzin.fwsc
+
+Sans rien installer : le workflow GitHub Actions (`.github/workflows/firmware.yml`) fait la même chose et donne le
+`.fwsc` en artefact (pas encore essayé). Pour revenir au firmware d'origine : M-UPGRADE, l'outil de M-VAVE.
 
 ### Pour ne pas bricker la machine
 
