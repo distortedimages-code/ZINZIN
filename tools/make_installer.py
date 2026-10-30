@@ -76,6 +76,9 @@ def main(pkg, version, out):
         html = html.replace("{{" + key + "}}", val)
     html = html.replace("/*LIB*/", lib).replace("/*META*/", meta).replace("/*APP*/", "null")
     (out / "install" / "index.html").write_text(html, encoding="utf-8")
+    words = ROOT / "zinzin" / "web" / "words"          # the screen reader's words (the build writes them)
+    if words.is_dir():
+        shutil.copytree(words, out / "words")
     print(f"installer: {out}/install/ ({product}, {file_name}, with m-bootloader {MBOOT})")
 
 
