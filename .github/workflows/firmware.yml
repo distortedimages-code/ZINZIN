@@ -48,7 +48,13 @@ jobs:
           git -C "$HOME/fw-AC79_AIoT_SDK" sparse-checkout set cpu/wl82/tools
           echo "AC79_SDK=$HOME/fw-AC79_AIoT_SDK" >> "$GITHUB_ENV"
       - name: ZINZIN
-        run: cd base && python3 tools/build.py ../zinzin --release "$VERSION"
+        shell: bash
+        run: |
+          set -o pipefail
+          (cd base && python3 tools/build.py ../zinzin --release "$VERSION") 2>&1 | tee build.log || {
+            # the end of the build's output as an annotation (readable from the API without the log files)
+            tail -n 120 build.log | python3 -c "import sys; t = sys.stdin.read().replace('%', '%25').replace('\r', '').replace('\n', '%0A'); print('::error title=build::' + t)"
+            exit 1; }
       - name: The installer
         run: |
           python3 tools/make_installer.py zinzin/build/*-"$VERSION".fwsc "$VERSION" site
