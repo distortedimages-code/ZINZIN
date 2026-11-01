@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (C) 2026 Yoann
 # ZINZIN on GitHub: the tests on every push; the firmware (a release build) and its web installer, with m-bootloader,
-# published on the repository's GitHub Pages (Settings > Pages > Source: GitHub Actions). Then everything happens in
-# Chrome or Edge: https://<account>.github.io/<repository>/install/
+# and ZINZIN in the browser (fm1-base's emulator, with ZINZIN's own page for phones), published on the repository's
+# GitHub Pages (Settings > Pages > Source: GitHub Actions): https://<account>.github.io/<repository>/ (jouer/ to play,
+# install/ to install, from Chrome or Edge).
 # The firmware job fetches JieLi's toolchain (pkgman.jieliapp.com) and the three files of the AC79 SDK a package needs
 # (cpu/wl82/tools, Apache-2.0), as fm1-base's README describes.
 name: firmware
@@ -74,22 +75,75 @@ jobs:
           tail -n 40 build.log | python3 -c "import sys; t = sys.stdin.read().replace('%', '%25').replace('\r', '').replace('\n', '%0A'); print('::notice title=build::' + t)"
           { grep -E "zinzin/.*warning:" build.log || true; } | head -n 60 | python3 -c "import sys; t = sys.stdin.read().replace('%', '%25').replace('\r', '').replace('\n', '%0A'); print('::notice title=warnings::' + (t or 'none'))"
       - name: The installer
-        run: |
-          python3 tools/make_installer.py zinzin/build/*-"$VERSION".fwsc "$VERSION" site
-          printf '<!doctype html><meta http-equiv="refresh" content="0; url=install/"><a href="install/">ZINZIN</a>\n' > site/index.html
+        run: python3 tools/make_installer.py zinzin/build/*-"$VERSION".fwsc "$VERSION" site
       - uses: actions/upload-artifact@v4
         with:
           name: zinzin-fwsc
           path: zinzin/build/*.fwsc
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-install
+          path: site
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - run: pip install pillow
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.74
+      - name: ZINZIN in the browser (fm1-base's emulator, ZINZIN's page)
+        shell: bash
+        run: |
+          set -o pipefail
+          (cd base && python3 tools/build.py ../zinzin --web --release "$VERSION") 2>&1 | tee web.log || {
+            tail -n 120 web.log | python3 -c "import sys; t = sys.stdin.read().replace('%', '%25').replace('\r', '').replace('\n', '%0A'); print('::error title=web::' + t)"
+            exit 1; }
+          rm -rf zinzin/build/emu/o2
+          ls -la zinzin/build/emu
+      - name: Checked in a phone-sized headless Chromium (it switches on, plays, moves, sounds)
+        shell: bash
+        run: |
+          npm install --no-save playwright@1.48.2
+          npx playwright install --with-deps chromium
+          set -o pipefail
+          node tools/web_smoke.js zinzin/build/emu . 2>&1 | tee smoke.log || { tail -n 40 smoke.log | python3 -c "import sys; t = sys.stdin.read().replace('%', '%25').replace('\r', '').replace('\n', '%0A'); print('::error title=smoke::' + t)"; exit 1; }
+          tail -n 40 smoke.log | python3 -c "import sys; t = sys.stdin.read().replace('%', '%25').replace('\r', '').replace('\n', '%0A'); print('::notice title=smoke::' + t)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-web
+          path: zinzin/build/emu
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke
+          path: smoke.png
+          if-no-files-found: ignore
+  site:
+    needs: [firmware, web]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-install
+          path: site
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-web
+          path: site/jouer
+      - run: cp zinzin/web/index.html site/index.html && ls -R site | head -40
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
   pages:
-    needs: firmware
+    needs: site
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}install/
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - id: deploy
         uses: actions/deploy-pages@v4

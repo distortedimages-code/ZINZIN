@@ -1,0 +1,606 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: MPL-2.0
+     Copyright (C) 2026 Yoann
+     ZINZIN in the browser, for a phone first: the real firmware (fm1-base's emulator, tools/build.py zinzin --web:
+     app.wasm in fm1-base's worklet.js, with app_worklet.js, ZINZIN's own part) and a panel made for fingers. The
+     FM-1's controls under ZINZIN's names; the screen is the FM-1's, pixel for pixel. -->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12061f">
+<meta name="description" content="ZINZIN, un firmware déjanté pour le M-VAVE FM-1, à essayer dans le navigateur : un Buchla sur une Nintendo, en 240x240.">
+<title>ZINZIN : jouer</title>
+<style>
+@font-face { font-family: "P2P"; src: url(data:font/woff;base64,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) format("woff"); font-display: block; }
+:root {
+  --bg: #12061f; --bg2: #1e0b33; --panel: #241238; --panel2: #2f1847; --line: #4b2d6b;
+  --ink: #fff7d6; --dim: #a993c9; --dark: #12061f;
+  --pink: #ff3d8b; --orange: #ff7a1a; --yellow: #ffd400; --cyan: #2ee6d6; --lime: #a6ff3d; --red: #ff3030;
+  --c: var(--pink);
+  --gut: max(8px, env(safe-area-inset-left));
+  --kd: 40px;
+  --vh: 1vh;
+}
+@supports (height: 1svh) { :root { --vh: 1svh; } }   /* the height left with the browser's bars showing */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100svh; color: var(--ink); background-color: var(--bg);
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 18%, #fff9 50%, transparent 51%), radial-gradient(1px 1px at 72% 9%, #fff8 50%, transparent 51%),
+    radial-gradient(1px 1px at 38% 62%, #ffd40099 50%, transparent 51%), radial-gradient(1.5px 1.5px at 88% 47%, #2ee6d699 50%, transparent 51%),
+    radial-gradient(1px 1px at 56% 83%, #ff3d8b99 50%, transparent 51%), linear-gradient(#12061f, #1e0b33);
+  background-size: 160px 160px, 210px 210px, 130px 130px, 190px 190px, 170px 170px, 100% 100%;
+  font: 14px/1.45 Verdana, Tahoma, "DejaVu Sans", sans-serif;
+  padding: max(6px, env(safe-area-inset-top)) var(--gut) max(10px, env(safe-area-inset-bottom));
+  -webkit-tap-highlight-color: transparent;
+}
+.px { font-family: "P2P", monospace; letter-spacing: 0; font-weight: normal; }
+a { color: var(--cyan); }
+button { font: inherit; color: inherit; }
+
+/* ---------------------------------------------------------------- the frame */
+.app { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 6px; }
+.top { display: flex; align-items: center; gap: 8px; height: 26px; }
+.logo { font-size: 16px; color: var(--pink); text-shadow: 2px 2px 0 #5b0a33, 0 0 12px #ff3d8b88; margin: 0; }
+.tag { font-size: 7px; color: var(--dim); flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.icon { min-width: 34px; height: 26px; border-radius: 6px; border: 2px solid var(--line); background: var(--panel); font-size: 10px; padding: 0 6px; cursor: pointer; }
+.icon[aria-pressed="true"] { color: var(--red); border-color: var(--red); }
+
+.head { display: flex; gap: 6px; }
+/* the screen as big as the rest leaves room for: everything on one phone screen */
+.monitor { flex: none; width: max(200px, min(calc(100% - 82px), calc(100 * var(--vh) - 404px))); position: relative; padding: 5px; border-radius: 10px;
+  background: linear-gradient(145deg, #d9d2e6, #8f84a3); box-shadow: inset 0 0 0 1px #fff8, 0 3px 0 #0008; }
+.monitor canvas { display: block; width: 100%; aspect-ratio: 1; border-radius: 4px; background: #000; image-rendering: pixelated; }
+.start { position: absolute; inset: 5px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; text-align: center; padding: 12px; background: repeating-linear-gradient(45deg, #ff3d8b 0 14px, #ff4f97 14px 28px); color: var(--dark); }
+.start .big { font-size: clamp(22px, 9vw, 40px); color: #fff; text-shadow: 3px 3px 0 #5b0a33; margin: 0; }
+.go { font-family: "P2P", monospace; font-size: 14px; padding: 14px 18px; border-radius: 10px; cursor: pointer; color: var(--dark);
+  background: var(--yellow); border: 3px solid var(--dark); box-shadow: 4px 4px 0 var(--dark); }
+.go:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--dark); }
+.go:disabled { opacity: .7; }
+.start[hidden] { display: none; }
+.start .hint { font-size: 11px; margin: 0; font-weight: bold; max-width: 26em; }
+.start .err { font-size: 12px; margin: 0; background: #fff; padding: 6px 8px; border-radius: 6px; color: #900; }
+.start .err:empty { display: none; }
+
+/* the four tracks, beside the screen */
+.tracks { flex: 1; min-width: 76px; display: grid; grid-template-rows: repeat(4, 1fr); gap: 6px; }
+.trk { --c: var(--pink); position: relative; border-radius: 10px; border: 2px solid var(--c); background: var(--panel); cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 2px; font-size: 8px; color: var(--ink); }
+.trk .tn { font-size: 8px; line-height: 1.2; }
+.trk .ti { font-size: 18px; line-height: 1; filter: grayscale(.2); }
+.trk.lit { background: var(--c); color: var(--dark); box-shadow: 0 0 14px var(--c); }
+.trk.muted { border-style: dashed; opacity: .55; }
+.trk.muted::after { content: "MUET"; position: absolute; top: 3px; right: 4px; font: 6px "P2P", monospace; color: var(--red); }
+
+/* ---------------------------------------------------------------- the panel */
+.panel { display: flex; flex-direction: column; gap: 6px; transition: opacity .3s; }
+.panel[inert], .tracks[inert] { opacity: .45; }
+.knobs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 5px 4px 3px; border-radius: 10px;
+  background: var(--panel); border: 2px solid var(--line); }
+.knob { --c: var(--pink); --v: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: ns-resize; touch-action: none; min-width: 0; }
+.dial { width: var(--kd); height: var(--kd); border-radius: 50%; position: relative;
+  background: conic-gradient(from 225deg, var(--c) 0 calc(var(--v) * 270deg), #3d2659 0 270deg, transparent 0); }
+.dial::before { content: ""; position: absolute; inset: 5px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #ffffff55, transparent 45%), linear-gradient(#6a4a8c, #2a1540);
+  box-shadow: inset 0 -2px 3px #0009, 0 1px 0 #ffffff30; }
+.dial i { position: absolute; left: 50%; top: 50%; width: 4px; height: 38%; margin-left: -2px; border-radius: 2px; background: var(--c);
+  transform-origin: 50% 0; transform: rotate(calc(45deg + var(--v) * 270deg)); box-shadow: 0 0 4px var(--c); }
+.knob.turning .dial { filter: brightness(1.3); }
+.kname { font-size: 7px; line-height: 1.2; white-space: nowrap; color: var(--ink); }
+.kval { font-size: 10px; line-height: 1.1; color: var(--dim); white-space: nowrap; height: 1.1em; overflow: hidden; max-width: 100%; text-overflow: ellipsis; }
+
+.btns { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.pb { --led: var(--yellow); position: relative; height: 32px; border-radius: 8px; cursor: pointer; padding: 0 2px; touch-action: none;
+  background: linear-gradient(#3e2560, #2a1645); border: 2px solid; border-color: #6d4c94 #1a0a2c #1a0a2c #6d4c94;
+  display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 7px; line-height: 1.25; text-align: center; color: var(--ink); }
+.pb.down { border-color: #1a0a2c #6d4c94 #6d4c94 #1a0a2c; background: #241238; }
+.pb .led { position: absolute; top: 4px; left: 4px; width: 6px; height: 6px; border-radius: 50%; background: #00000066; box-shadow: inset 0 0 0 1px #0006; }
+.pb.lit .led { background: var(--led); box-shadow: 0 0 6px var(--led); }
+.pb.green .led { background: var(--lime); box-shadow: 0 0 6px var(--lime); }
+.pb.lit.green .led { background: linear-gradient(90deg, var(--red) 50%, var(--lime) 50%); }
+.pb.latch.lit { background: var(--pink); color: var(--dark); }
+
+/* the keys: two rows of eight white keys (the FM-1's 27, F to G), steps 1-8 above 9-16 */
+.kbd { display: flex; flex-direction: column; gap: 5px; touch-action: none; }
+.row { --pad: 13px; --bw: 26px; position: relative; height: 54px; display: flex; padding: 0 var(--pad); border-radius: 8px; background: var(--dark); }
+.key { position: relative; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 5px;
+  font-size: 6px; line-height: 1.2; text-align: center; overflow: hidden; }
+.key.w { flex: 1; margin: 0 1px; border-radius: 0 0 7px 7px; background: linear-gradient(#fffaf0, #e7dccb); color: #3a2a4a; box-shadow: inset 0 -4px 0 #c9bba5; }
+.key.b { position: absolute; top: 0; width: var(--bw); height: 58%; z-index: 2; border-radius: 0 0 5px 5px; padding-bottom: 4px;
+  left: calc(var(--pad) + var(--at) * (100% - 2 * var(--pad)) / 8 - var(--bw) / 2);
+  background: linear-gradient(#3a2a4a, #150a20); color: #d8c8ee; box-shadow: inset 0 -3px 0 #000; }
+.key.w.dim { background: linear-gradient(#ffe4f0, #ffb9d6); }
+.key.w.lit { background: linear-gradient(#ff8ec0, var(--pink)); color: #fff; box-shadow: inset 0 -4px 0 #b3105a, 0 0 10px var(--pink); }
+.key.b.dim { background: linear-gradient(#7a2a55, #3a1028); }
+.key.b.lit { background: linear-gradient(#ff8ec0, var(--pink)); color: #fff; box-shadow: 0 0 10px var(--pink); }
+.key.w.on { box-shadow: inset 0 -1px 0 #c9bba5; transform: translateY(2px); }
+.key .num { position: absolute; top: 4px; left: 0; right: 0; font-size: 6px; opacity: .55; }
+.key.lit .num { opacity: 1; }
+
+/* ---------------------------------------------------------------- below */
+.help { margin-top: 8px; border-radius: 10px; background: var(--panel); border: 2px solid var(--line); }
+.help summary { cursor: pointer; padding: 10px 12px; font-size: 9px; color: var(--yellow); list-style: none; }
+.help summary::-webkit-details-marker { display: none; }
+.help .in { padding: 0 14px 12px; font-size: 13px; }
+.help h3 { font-size: 8px; color: var(--pink); margin: 14px 0 6px; }
+.help p, .help li { color: var(--ink); margin: 4px 0; }
+.help ul { padding-left: 18px; margin: 4px 0; }
+.help b { color: var(--yellow); font-weight: bold; }
+.help kbd { font: 11px monospace; background: var(--dark); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+.foot { text-align: center; font-size: 11px; color: var(--dim); margin: 10px 0 4px; }
+.foot .px { font-size: 7px; }
+.marquee { overflow: hidden; white-space: nowrap; font-size: 8px; color: var(--cyan); margin: 6px 0 0; }
+.marquee span { display: inline-block; padding-left: 100%; animation: marq 18s linear infinite; }
+@keyframes marq { to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) { .marquee span { animation: none; padding-left: 0; } }
+
+/* a landscape phone, a tablet, a computer: the screen on the left */
+@media (orientation: landscape) and (min-width: 620px) {
+  .app { --sw: min(calc(100 * var(--vh) - 50px), 46vw, 560px); max-width: none; display: grid; column-gap: 14px; align-items: start;
+         grid-template-columns: calc(var(--sw) + 92px) minmax(0, 470px); justify-content: center; }
+  .top { grid-column: 1 / -1; }
+  .head { grid-column: 1; grid-row: 2; }
+  .tracks { flex: none; width: 86px; }
+  .monitor { width: var(--sw); }
+  .panel { grid-column: 2; grid-row: 2 / span 3; }
+  .help { grid-column: 1; grid-row: 3; }
+  .foot { grid-column: 1; grid-row: 4; }
+}
+@media (orientation: landscape) and (min-width: 620px) and (max-height: 500px) {
+  .tag { display: none; }
+  .row { height: 44px; }
+  :root { --kd: 32px; }
+  .app { row-gap: 4px; }
+  .panel, .kbd { gap: 4px; }
+  .knobs { padding: 3px 4px 2px; }
+  .knob { gap: 1px; }
+  .kval { font-size: 9px; }
+  .pb { height: 28px; }
+}
+@media (max-width: 350px) { :root { --kd: 36px; } .row { --bw: 22px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <h1 class="logo px">ZINZIN</h1>
+    <span class="tag px">un Buchla sur une Nintendo</span>
+    <button class="icon px" id="mute" type="button" aria-pressed="false" title="couper le son">SON</button>
+    <a class="icon px" href="#aide" title="comment ça marche" style="display:flex;align-items:center;justify-content:center;text-decoration:none;color:var(--yellow)">?</a>
+  </header>
+
+  <div class="head">
+    <div class="monitor">
+      <canvas id="screen" width="240" height="240" aria-label="l'écran du FM-1"></canvas>
+      <div class="start" id="start">
+        <p class="big px">ZINZIN</p>
+        <button class="go" id="go" type="button">▶ ALLUMER</button>
+        <p class="hint">Monte le son. Sur iPhone, enlève le mode silencieux.</p>
+        <p class="err" id="err" role="alert"></p>
+      </div>
+    </div>
+    <div class="tracks" id="tracks" inert></div>
+  </div>
+
+  <main class="panel" id="panel" inert>
+    <div class="knobs" id="knobs1"></div>
+    <div class="knobs" id="knobs2"></div>
+    <div class="btns" id="btns"></div>
+    <div class="kbd" id="kbd"></div>
+  </main>
+
+  <details class="help" id="aide">
+    <summary class="px">? COMMENT ÇA MARCHE</summary>
+    <div class="in">
+      <p>ZINZIN est un firmware pour le <b>M-VAVE FM-1</b>, un petit synthé de poche. Ici, c'est le <b>vrai firmware</b>,
+        compilé pour le navigateur : le même son, le même écran de 240 × 240 pixels.</p>
+      <h3 class="px">LES 4 PISTES</h3>
+      <ul>
+        <li><b>BOUM</b> la batterie, <b>MATOU</b> le synthé, <b>MAMMOUTH</b> la basse.</li>
+        <li><b>BAZAR</b> : des bêtises sur tout le mix (BÉGAIE, RECULE, FIGE, COULE, PLONGE, ÉCRASE).</li>
+      </ul>
+      <p>Touche une piste pour la choisir : les quatre premiers potards et le clavier sont à elle.</p>
+      <h3 class="px">LES POTARDS</h3>
+      <p>Glisse le doigt vers le haut (ou la droite) pour monter. Chaque potard bouge plusieurs choses à la fois :</p>
+      <ul>
+        <li><b>BIDOCHE</b> le poids, <b>CHATOUILLE</b> le caractère, <b>MOISI</b> la pourriture, <b>FLEMME</b> la longueur et l'espace.</li>
+        <li><b>HUMEUR</b> : sept humeurs de l'euphorie à la déprime. La gamme, le rythme et l'écran changent.</li>
+        <li><b>APÉRO</b> : à quel point tout dérive tout seul. <b>CAFÉINE</b> : le tempo.</li>
+      </ul>
+      <h3 class="px">LES BOUTONS</h3>
+      <ul>
+        <li><b>ZOU</b> lance et arrête. <b>AU PIF</b> invente un motif pour la piste, <b>TOUT AU PIF</b> pour les quatre.</li>
+        <li><b>PAS</b> : les 16 touches blanches deviennent les 16 pas du motif (touche une fois : note, deux fois : accent, trois : rien).
+          Les noires choisissent ce qui s'écrit (le fût, la bêtise, la note).</li>
+        <li><b>ENREGISTRE</b> : pendant que ça joue, ce que tu joues s'écrit dans le motif.</li>
+        <li><b>MUET</b> coupe la piste. <b>CAVE</b> / <b>GRENIER</b> : le clavier une octave plus bas / plus haut.</li>
+        <li><b>BOUCAN</b> (reste enfoncé) : les quatre premiers potards règlent le volume de chaque piste.
+          BOUCAN puis SAUVE : le compteur d'images en haut de l'écran.</li>
+        <li><b>SAUVE</b> garde ton morceau dans ce navigateur.</li>
+      </ul>
+      <h3 class="px">SUR UN ORDI</h3>
+      <p><kbd>Espace</kbd> ZOU, <kbd>1</kbd>…<kbd>4</kbd> les pistes, la rangée <kbd>A S D F G H J K</kbd> les touches blanches
+        (<kbd>W E R Y U</kbd> les noires), <kbd>P</kbd> PAS. <button class="icon px" id="midi" type="button">MIDI</button> pour brancher un clavier MIDI (Chrome, Edge).</p>
+      <h3 class="px">UN VRAI FM-1 ?</h3>
+      <p>ZINZIN s'installe depuis Chrome ou Edge : <a href="../install/">la page d'installation</a>.</p>
+      <p class="marquee px"><span>★ BIENVENUE SUR MA PAGE PERSO ★ MEILLEUR RENDU EN 240x240 ★ SIGNEZ MON LIVRE D'OR ★ ZINZIN ★</span></p>
+    </div>
+  </details>
+  <p class="foot">ZINZIN (MPL-2.0) sur <a href="https://github.com/charlesvestal/fm1-base">fm1-base</a> ·
+    <a href="https://github.com/distortedimages-code/ZINZIN">le code</a> · police Press Start 2P (OFL)<br><span class="px" id="load"></span></p>
+</div>
+
+<script>
+"use strict";
+// ---------------------------------------------------------------- the FM-1 (fm1-base's plat.h)
+const B = { FX: 0, SEL: 1, ENV: 2, LFO: 3, EDIT: 4, GLO: 5, HOME: 6, SAVE: 7, ARP: 8, SEQ: 9, PLAY: 10, REC: 11, OCTDN: 12, OCTUP: 13 };
+const GREEN = 1 << 14;                                        // LED_PLAY_GREEN
+const EN = { SELECT: 0, ALGO: 1, PRESET: 2, K1: 3, K2: 4, K3: 5, K4: 6 };
+const WHITE_K = [0, 2, 4, 6, 7, 9, 11, 12, 14, 16, 18, 19, 21, 23, 24, 26], BLACK_K = [1, 3, 5, 8, 10, 13, 15, 17, 20, 22, 25];
+// ZINZIN (zinzin/app.c, zinzin/web.c)
+const TRK = [{ name: "BOUM", icon: "🥁", col: "#ff7a1a", bit: B.FX }, { name: "MATOU", icon: "🐱", col: "#ff3d8b", bit: B.SEL },
+             { name: "MAMMOUTH", icon: "🦣", col: "#ffd400", bit: B.ENV }, { name: "BAZAR", icon: "🌀", col: "#2ee6d6", bit: B.LFO }];
+const MACROS = ["BIDOCHE", "CHATOUILLE", "MOISI", "FLEMME"];
+const MOODS = ["euphorie", "joie", "insouciance", "rêverie", "mélancolie", "colère", "déprime"];
+const DRUMS = ["KICK", "CAISSE", "CHARLEY", "BING"], DRUMS_S = ["KI", "CA", "CH", "BI"];
+const BETS = ["BÉGAIE", "RECULE", "FIGE", "COULE", "PLONGE", "ÉCRASE"], BETS_S = ["BÉG", "REC", "FIG", "COU", "PLO", "ÉCR"];
+const NOTES = ["FA", "FA#", "SOL", "SOL#", "LA", "LA#", "SI", "DO", "DO#", "RÉ", "RÉ#", "MI"];
+const WS = { T: 0, G: 20, SEL: 23, STEP: 24, LANE: 25, BET: 26, DEG: 27, PLAY: 28, REC: 29, OCT: 30, MOOD: 31, BPM: 32, MUTE: 33, CUR: 37 };
+const STORE_KEY = "zinzin-web-store", PREFS_KEY = "zinzin-web-prefs";
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, parent, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html !== undefined) e.innerHTML = html; if (parent) parent.appendChild(e); return e; };
+const prefs = (() => { try { return JSON.parse(localStorage.getItem(PREFS_KEY) || "{}"); } catch { return {}; } })();
+const savePrefs = () => { try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch { /* private window */ } };
+
+let ac = null, node = null, gain = null;
+let st = null, lit = { b: 0, k: 0, db: 0, dk: 0 };
+let master = Number.isFinite(prefs.master) ? prefs.master : 2800;
+let arpLatch = false;
+const send = (m) => { if (node) node.port.postMessage(m); };
+
+// ---------------------------------------------------------------- held buttons and keys (a press lasts 45 ms at least: the
+// device reads its panel once a millisecond of its own time, and that time runs in bursts)
+const MIN_HOLD = 45;
+function holder(sendMask) {
+  const count = new Map(), since = new Map();
+  let mask = 0;
+  const sync = () => { mask = 0; for (const [bit, n] of count) if (n > 0) mask |= 1 << bit; sendMask(mask); };
+  return {
+    down(bit) { count.set(bit, (count.get(bit) || 0) + 1); since.set(bit, performance.now()); sync(); },
+    up(bit) {
+      const left = MIN_HOLD - (performance.now() - (since.get(bit) || 0));
+      const go = () => { count.set(bit, Math.max(0, (count.get(bit) || 0) - 1)); sync(); };
+      if (left > 0) setTimeout(go, left); else go();
+    },
+    all() { count.clear(); sync(); },
+    get mask() { return mask; },
+    sync,
+  };
+}
+const btnHold = holder((m) => send({ type: "buttons", mask: (m | (arpLatch ? 1 << B.ARP : 0)) >>> 0 }));
+const keyHold = holder((m) => send({ type: "keys", mask: m >>> 0 }));
+
+// every control: one pointer at a time follows it (pointer capture); a finger that moves off a key slides to the next
+const panel = $("panel");
+document.addEventListener("touchstart", (e) => { if (e.target.closest && e.target.closest(".ctl")) e.preventDefault(); }, { passive: false });
+document.addEventListener("contextmenu", (e) => { if (e.target.closest && e.target.closest(".ctl")) e.preventDefault(); });
+document.addEventListener("pointerdown", () => { if (ac && ac.state !== "running") ac.resume(); });
+
+// ---------------------------------------------------------------- the tracks
+const trackEls = TRK.map((t, i) => {
+  const b = el("button", "trk ctl", $("tracks"), `<span class="ti">${t.icon}</span><span class="tn px">${t.name}</span>`);
+  b.type = "button";
+  b.style.setProperty("--c", t.col);
+  b.title = `${t.name} (${["FX", "SEL", "ENV", "LFO"][i]} sur le FM-1)`;
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); btnHold.down(t.bit); });
+  const up = () => btnHold.up(t.bit);
+  b.addEventListener("pointerup", up);
+  b.addEventListener("pointercancel", up);
+  return b;
+});
+
+// ---------------------------------------------------------------- the knobs: endless, as the FM-1's; a detent every 8 px
+function knob(parent, role, name, col) {
+  const k = el("div", "knob ctl", parent, `<div class="dial"><i></i></div><b class="kname px">${name}</b><span class="kval"></span>`);
+  k.style.setProperty("--c", col);
+  k.role_ = role;
+  let drag = null;
+  k.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    k.setPointerCapture(e.pointerId);
+    drag = { x: e.clientX, y: e.clientY, acc: 0 };
+    k.classList.add("turning");
+  });
+  k.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    drag.acc += (e.clientX - drag.x) - (e.clientY - drag.y);
+    drag.x = e.clientX; drag.y = e.clientY;
+    const n = Math.trunc(drag.acc / 8);
+    if (n) { drag.acc -= n * 8; turn(k, n); }
+  });
+  const end = () => { drag = null; k.classList.remove("turning"); };
+  k.addEventListener("pointerup", end);
+  k.addEventListener("pointercancel", end);
+  k.addEventListener("wheel", (e) => { e.preventDefault(); turn(k, e.deltaY < 0 ? 1 : -1); }, { passive: false });
+  return k;
+}
+function turn(k, n) {
+  if (k.role_ === "master") {
+    master = Math.max(0, Math.min(4096, master + n * 64));
+    prefs.master = master; savePrefs();
+    send({ type: "master", value: master });
+    showKnobs();
+  } else send({ type: "enc", role: k.role_, n });
+}
+const macroKnobs = MACROS.map((m, i) => knob($("knobs1"), EN.K1 + i, m, TRK[1].col));
+const humeur = knob($("knobs2"), EN.ALGO, "HUMEUR", "#fff7d6"), apero = knob($("knobs2"), EN.PRESET, "APÉRO", "#fff7d6"),
+      cafeine = knob($("knobs2"), EN.SELECT, "CAFÉINE", "#fff7d6"), volume = knob($("knobs2"), "master", "VOLUME", "#a6ff3d");
+humeur.title = "ALGO sur le FM-1"; apero.title = "PRESET sur le FM-1"; cafeine.title = "SELECT sur le FM-1"; volume.title = "MASTER sur le FM-1";
+macroKnobs.forEach((k, i) => (k.title = `K${i + 1} sur le FM-1`));
+const setKnob = (k, v, text) => { k.style.setProperty("--v", Math.max(0, Math.min(1, v)).toFixed(3)); k.querySelector(".kval").textContent = text; };
+const pct = (v) => Math.round(v * 100) + " %";
+function showKnobs() {
+  setKnob(volume, master / 4096, pct(master / 4096));
+  if (!st) return;
+  const sel = st[WS.SEL] | 0;
+  macroKnobs.forEach((k, i) => {
+    const t = arpLatch ? i : sel, m = arpLatch ? 4 : i;
+    k.querySelector(".kname").textContent = arpLatch ? TRK[i].name : MACROS[i];
+    k.style.setProperty("--c", TRK[t].col);
+    setKnob(k, st[WS.T + t * 5 + m], pct(st[WS.T + t * 5 + m]));
+  });
+  setKnob(humeur, st[WS.G], MOODS[st[WS.MOOD] | 0] || "");
+  setKnob(apero, st[WS.G + 1], pct(st[WS.G + 1]));
+  setKnob(cafeine, st[WS.G + 2], Math.round(st[WS.BPM]) + " BPM");
+}
+
+// ---------------------------------------------------------------- the buttons
+const BTN = [
+  { bit: B.PLAY, name: "ZOU", fm: "PLAY", led: "var(--lime)" }, { bit: B.EDIT, name: "PAS", fm: "EDIT" },
+  { bit: B.REC, name: "ENRE-<br>GISTRE", fm: "REC", led: "var(--red)" }, { bit: B.GLO, name: "AU PIF", fm: "GLO" },
+  { bit: B.SEQ, name: "TOUT<br>AU PIF", fm: "SEQ" }, { bit: B.HOME, name: "MUET", fm: "HOME", led: "var(--red)" },
+  { bit: B.ARP, name: "BOUCAN", fm: "ARP", latch: true, led: "var(--pink)" }, { bit: B.SAVE, name: "SAUVE", fm: "SAVE", led: "var(--orange)" },
+  { bit: B.OCTDN, name: "CAVE", fm: "OCT-", led: "var(--cyan)" }, { bit: B.OCTUP, name: "GRENIER", fm: "OCT+", led: "var(--cyan)" },
+];
+const btnEls = {};
+for (const d of BTN) {
+  const b = el("button", "pb ctl px" + (d.latch ? " latch" : ""), $("btns"), `<i class="led"></i><span>${d.name}</span>`);
+  b.type = "button";
+  b.title = `${d.fm} sur le FM-1`;
+  if (d.led) b.style.setProperty("--led", d.led);
+  btnEls[d.bit] = b;
+  if (d.latch) {                                     // BOUCAN stays down until touched again (two fingers are not needed)
+    b.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      arpLatch = !arpLatch;
+      btnHold.sync();
+      showKnobs();
+    });
+    continue;
+  }
+  b.addEventListener("pointerdown", (e) => { e.preventDefault(); b.setPointerCapture(e.pointerId); b.classList.add("down"); btnHold.down(d.bit); });
+  const up = () => { if (b.classList.contains("down")) { b.classList.remove("down"); btnHold.up(d.bit); } };
+  b.addEventListener("pointerup", up);
+  b.addEventListener("pointercancel", up);
+}
+
+// ---------------------------------------------------------------- the keys
+const keyEls = [];
+const rows = [{ from: 0, to: 12, w0: 0 }, { from: 13, to: 26, w0: 8 }];
+for (const r of rows) {
+  const row = el("div", "row", $("kbd"));
+  for (let k = r.from; k <= r.to; k++) {
+    const wi = WHITE_K.indexOf(k), bi = BLACK_K.indexOf(k);
+    const e = el("div", "key ctl px " + (wi >= 0 ? "w" : "b"), row);
+    e.dataset.k = k;
+    if (bi >= 0) {                                    // between the two white keys around it
+      const before = WHITE_K.filter((w) => w < k && w >= r.from).length;
+      e.style.setProperty("--at", before);
+    }
+    keyEls[k] = e;
+  }
+}
+const keyAt = (x, y) => { const t = document.elementFromPoint(x, y); return t && t.closest && t.closest(".key"); };
+const fingers = new Map();
+function fingerTo(id, e) {
+  const was = fingers.get(id);
+  if (was === e) return;
+  if (was) { was.classList.remove("on"); keyHold.up(+was.dataset.k); }
+  if (e) { e.classList.add("on"); keyHold.down(+e.dataset.k); fingers.set(id, e); } else fingers.delete(id);
+}
+$("kbd").addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  $("kbd").setPointerCapture(e.pointerId);
+  fingerTo(e.pointerId, keyAt(e.clientX, e.clientY));
+});
+$("kbd").addEventListener("pointermove", (e) => { if (fingers.has(e.pointerId)) fingerTo(e.pointerId, keyAt(e.clientX, e.clientY)); });
+const fingerUp = (e) => fingerTo(e.pointerId, null);
+$("kbd").addEventListener("pointerup", fingerUp);
+$("kbd").addEventListener("pointercancel", fingerUp);
+
+// what each key does now, written on it
+let keyLabels = "";
+function labelKeys() {
+  if (!st) return;
+  const sel = st[WS.SEL] | 0, pas = st[WS.STEP] > 0.5, oct = st[WS.OCT] | 0;
+  const sig = `${sel} ${pas} ${oct}`;
+  if (sig === keyLabels) return;
+  keyLabels = sig;
+  keyEls.forEach((e, k) => {
+    const wi = WHITE_K.indexOf(k), bi = BLACK_K.indexOf(k), idx = wi >= 0 ? wi : bi, white = wi >= 0;
+    let t = "", num = "";
+    if (pas) {
+      if (white) { num = String(wi + 1); t = ""; }
+      else if (sel === 0) t = bi < 4 ? DRUMS_S[bi] : "";
+      else if (sel === 3) t = bi < 6 ? BETS_S[bi] : "";
+      else t = "♪" + (bi + 1);
+    } else if (sel === 0) t = white ? DRUMS[idx % 4] : DRUMS_S[idx % 4];
+    else if (sel === 3) t = white ? BETS[idx % 6] : BETS_S[idx % 6];
+    else t = white ? NOTES[k % 12] : "";
+    e.innerHTML = (num ? `<span class="num">${num}</span>` : "") + t;
+  });
+}
+
+// ---------------------------------------------------------------- the screen: the LCD's 240 x 240 in a hidden canvas, enlarged by a
+// whole number into the visible one (every LCD pixel the same size), then shown at the page's size
+const screenEl = $("screen"), sctx = screenEl.getContext("2d");
+const lcd = document.createElement("canvas");
+lcd.width = lcd.height = 240;
+const lctx = lcd.getContext("2d"), img = lctx.createImageData(240, 240), px32 = new Uint32Array(img.data.buffer);
+const LUT = new Uint32Array(65536);                    // the panel's byte order, RGB565 -> RGBA
+for (let v = 0; v < 65536; v++) {
+  const p = ((v >> 8) | (v << 8)) & 0xffff;
+  LUT[v] = 0xff000000 | (Math.round((p & 31) * 255 / 31) << 16) | (Math.round(((p >> 5) & 63) * 255 / 63) << 8) | Math.round(((p >> 11) & 31) * 255 / 31);
+}
+function blitScreen() { sctx.imageSmoothingEnabled = false; sctx.drawImage(lcd, 0, 0, screenEl.width, screenEl.height); }
+function fitScreen() {
+  const w = screenEl.getBoundingClientRect().width * (window.devicePixelRatio || 1);
+  const n = 240 * Math.max(1, Math.ceil(w / 240 - 0.001));
+  if (screenEl.width !== n) { screenEl.width = screenEl.height = n; blitScreen(); }
+}
+new ResizeObserver(fitScreen).observe(screenEl);
+function drawScreen(fb) {
+  for (let i = 0; i < 57600; i++) px32[i] = LUT[fb[i]];
+  lctx.putImageData(img, 0, 0);
+  blitScreen();
+}
+
+// ---------------------------------------------------------------- the lights, and the state web.c sends
+function drawLights() {
+  const { b, k, db, dk } = lit;
+  TRK.forEach((t, i) => {
+    trackEls[i].classList.toggle("lit", !!(b & (1 << t.bit)));
+    trackEls[i].classList.toggle("muted", st ? st[WS.MUTE + i] > 0.5 : !(b & (1 << t.bit)) && !(db & (1 << t.bit)));
+  });
+  for (const d of BTN) {
+    const e = btnEls[d.bit];
+    e.classList.toggle("lit", d.latch ? arpLatch : !!(b & (1 << d.bit)));
+    if (d.bit === B.PLAY) e.classList.toggle("green", !!(b & GREEN));
+  }
+  keyEls.forEach((e, i) => {
+    const on = !!(k & (1 << i));
+    e.classList.toggle("lit", on);
+    e.classList.toggle("dim", !on && !!(dk & (1 << i)));
+  });
+}
+function onMessage(m) {
+  if (m.type === "frame") {
+    if (m.fb) drawScreen(m.fb);
+    lit = { b: m.buttons, k: m.keys, db: m.dimButtons || 0, dk: m.dimKeys || 0 };
+    drawLights();
+    if (m.load !== undefined) $("load").textContent = `TON APPAREIL BOSSE À ${m.load} %`;
+    if (m.store) saveStore(m.store);
+  } else if (m.type === "app" && m.st) {
+    st = m.st;
+    showKnobs();
+    labelKeys();
+    drawLights();
+  }
+}
+
+// ---------------------------------------------------------------- saved songs (SAUVE): kept in this browser
+function loadStore() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY) || "{}"), out = {};
+    for (const [o, b64] of Object.entries(raw)) out[o] = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer;
+    return out;
+  } catch { return {}; }
+}
+function saveStore(store) {
+  try {
+    const raw = {};
+    for (const [o, u8] of Object.entries(store)) { let s = ""; for (const c of u8) s += String.fromCharCode(c); raw[o] = btoa(s); }
+    localStorage.setItem(STORE_KEY, JSON.stringify(raw));
+  } catch { /* no storage: this visit only */ }
+}
+
+// ---------------------------------------------------------------- switching on (a touch is needed before any sound)
+let wasmP = fetch("app.wasm").then((r) => { if (!r.ok) throw new Error(`app.wasm ${r.status}`); return r.arrayBuffer(); });
+wasmP.catch(() => {});
+async function switchOn() {
+  const go = $("go");
+  go.disabled = true;
+  go.textContent = "…";
+  $("err").textContent = "";
+  try {
+    try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch { /* (Safari: plays with the silent switch on) */ }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || typeof AudioWorkletNode === "undefined") throw new Error("ce navigateur ne sait pas faire (il faut un Chrome, Safari ou Firefox récent)");
+    try { ac = new AC({ sampleRate: 44100, latencyHint: "interactive" }); } catch { ac = new AC({ latencyHint: "interactive" }); }
+    ac.resume();                                         // within the touch
+    await ac.audioWorklet.addModule("app_worklet.js").catch(() => {});
+    await ac.audioWorklet.addModule("worklet.js");
+    let wasm;
+    try { wasm = await wasmP; } catch { wasm = await (wasmP = fetch("app.wasm").then((r) => r.arrayBuffer())); }
+    node = new AudioWorkletNode(ac, "fm1", { numberOfInputs: 0, numberOfOutputs: 1, outputChannelCount: [2] });
+    gain = ac.createGain();
+    gain.gain.value = prefs.muted ? 0 : 1;
+    node.connect(gain).connect(ac.destination);
+    const ready = new Promise((res, rej) => {
+      node.port.onmessage = (e) => { if (e.data.type === "ready") res(); else onMessage(e.data); };
+      node.onprocessorerror = () => rej(new Error("le moteur a planté"));
+      setTimeout(() => rej(new Error("le moteur ne répond pas")), 15000);
+    });
+    node.port.postMessage({ type: "load", wasm, store: loadStore(), master }, [wasm]);
+    await ready;
+    await ac.resume();
+    $("start").hidden = true;
+    panel.inert = false;
+    $("tracks").inert = false;
+    btnHold.sync(); keyHold.sync();
+    showKnobs();
+  } catch (err) {
+    if (node) { node.disconnect(); node = null; }
+    if (ac) { ac.close().catch(() => {}); ac = null; }
+    wasmP = fetch("app.wasm").then((r) => r.arrayBuffer());
+    go.disabled = false;
+    go.textContent = "▶ ALLUMER";
+    $("err").textContent = "Raté : " + ((err && err.message) || err);
+  }
+}
+$("go").addEventListener("click", switchOn);
+const muteBtn = $("mute");
+const showMute = () => { muteBtn.setAttribute("aria-pressed", prefs.muted ? "true" : "false"); muteBtn.textContent = prefs.muted ? "MUET" : "SON"; };
+showMute();
+muteBtn.addEventListener("click", () => { prefs.muted = !prefs.muted; savePrefs(); showMute(); if (gain) gain.gain.value = prefs.muted ? 0 : 1; });
+addEventListener("blur", () => { btnHold.all(); keyHold.all(); fingers.clear(); document.querySelectorAll(".key.on").forEach((e) => e.classList.remove("on")); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden && ac) ac.resume(); });
+
+// ---------------------------------------------------------------- a computer's keyboard, and MIDI
+const CODE_KEY = { KeyA: 0, KeyW: 1, KeyS: 2, KeyE: 3, KeyD: 4, KeyR: 5, KeyF: 6, KeyG: 7, KeyY: 8, KeyH: 9, KeyU: 10, KeyJ: 11, KeyK: 12,
+                   KeyO: 13, KeyL: 14 };
+const CODE_BTN = { Space: B.PLAY, Digit1: B.FX, Digit2: B.SEL, Digit3: B.ENV, Digit4: B.LFO, KeyP: B.EDIT, KeyZ: B.OCTDN, KeyX: B.OCTUP };
+addEventListener("keydown", (e) => {
+  if (!node || e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.code in CODE_KEY) { keyHold.down(CODE_KEY[e.code]); keyEls[CODE_KEY[e.code]].classList.add("on"); e.preventDefault(); }
+  else if (e.code in CODE_BTN) { btnHold.down(CODE_BTN[e.code]); e.preventDefault(); }
+});
+addEventListener("keyup", (e) => {
+  if (e.code in CODE_KEY) { keyHold.up(CODE_KEY[e.code]); keyEls[CODE_KEY[e.code]].classList.remove("on"); }
+  else if (e.code in CODE_BTN) btnHold.up(CODE_BTN[e.code]);
+});
+$("midi").addEventListener("click", async () => {
+  const b = $("midi");
+  if (!navigator.requestMIDIAccess) { b.textContent = "PAS DE MIDI ICI"; return; }
+  try {
+    const access = await navigator.requestMIDIAccess();
+    const hook = () => { for (const i of access.inputs.values()) i.onmidimessage = (e) => {
+      const [s, d1 = 0, d2 = 0] = e.data;
+      if (s >= 0xf8 && s !== 0xfa && s !== 0xfc) return;   // the clock: not for ZINZIN
+      const cin = s >= 0xf0 ? 0x0f : s >> 4;
+      send({ type: "app", midi: (cin | s << 8 | d1 << 16 | d2 << 24) >>> 0 });
+    }; };
+    hook();
+    access.onstatechange = hook;
+    b.textContent = `MIDI : ${access.inputs.size}`;
+  } catch { b.textContent = "MIDI REFUSÉ"; }
+});
+
+for (const k of [...macroKnobs, humeur, apero, cafeine, volume]) setKnob(k, 0, "");
+showKnobs();
+</script>
+</body>
+</html>

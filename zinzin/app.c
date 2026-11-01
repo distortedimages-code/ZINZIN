@@ -81,6 +81,12 @@ static void draw_service(uint32_t budget_us)
     }
     while (fr.active) {                          /* a few bands a pass: the keys stay quick */
         draw_band(fr.band++);
+#ifdef PLAT_WEB
+        /* in the browser (fm1-base's emulator) the whole device runs inside the audio callback, on a clock that
+         * stands still meanwhile: one band a pass, so a frame is spread over several blocks of sound */
+        if (fr.band < 240 / BAND)
+            break;
+#endif
         if (fr.band >= 240 / BAND) {
             fr.active = 0;
             fr.fps_n++;                          /* frames a second, and the sound's load (ARP + SAVE shows them) */
@@ -517,6 +523,10 @@ void app_input_only(void)                        /* the main loop's time between
 {
     input();
     events();
+#ifdef PLAT_WEB
+    if (plat_ms() % 4u)                          /* (the browser: a band every 4 ms, a frame over ~24 ms) */
+        return;
+#endif
     draw_service(3000u);
 }
 

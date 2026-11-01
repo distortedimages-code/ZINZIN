@@ -8,9 +8,21 @@ Il remplace la couche d'origine du FM-1. Il est bâti sur [fm1-base](https://git
 (la plateforme : écran, panneau, LED, audio, MIDI, stockage, mise à jour par USB, garde au démarrage), elle-même sur
 [felucca-bsp](https://github.com/hugelton/felucca-bsp). ZINZIN n'est que l'app par-dessus : `zinzin/`.
 
-> **État : écrit et testé sur ordinateur, pas encore lancé sur un vrai FM-1.** Le moteur sonore et l'écran tournent
-> dans un banc d'essai (`make test`) qui produit des captures, des GIF et du son. Le premier flash sur la machine est
-> le vrai test : voir « À vérifier sur la machine » plus bas.
+> **État : tourne sur un vrai FM-1** (la 0.1 : le son va bien, l'écran ramait à ~5 images par seconde ; la 0.2 dessine
+> dans le temps libre de la boucle principale pour viser 12,5, à mesurer sur la machine avec ARP + SAVE).
+
+## Essayer sans FM-1
+
+**https://distortedimages-code.github.io/ZINZIN/jouer/** : le vrai firmware, compilé pour le navigateur (l'émulateur
+de fm1-base), avec un panneau fait pour les doigts. Ça marche sur un téléphone (Chrome, Safari, Firefox récents) :
+toucher ALLUMER, puis ZOU. Le morceau sauvé (SAUVE) reste dans le navigateur.
+
+- La page : `zinzin/web/emu/index.html` (et `app_worklet.js`, la part de ZINZIN dans le worklet de fm1-base) ;
+  `zinzin/web.c` lui donne l'état des potards, de la piste et de l'humeur. Le workflow la construit avec
+  `tools/build.py zinzin --web` (Emscripten) et la vérifie dans un Chromium sans écran (`tools/web_smoke.js`).
+- Dans le navigateur, tout le FM-1 tourne dans le rappel audio : l'écran y est dessiné une bande toutes les 4 ms
+  (`PLAT_WEB` dans `app.c`) pour ne jamais faire attendre le son. Le firmware de la machine n'en voit rien.
+- Sur l'ordi, sans Emscripten : `make web` (clang et wasi-libc) construit une version de banc d'essai dans `build/web`.
 
 ## Les commandes
 

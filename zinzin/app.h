@@ -14,6 +14,8 @@
                                            * out), and room for the platform's own screens */
 #define APP_SPLASH                        /* our own first screen */
 #define APP_OVERLOAD                      /* the render ran late: the engine sheds its unison copies */
+#define APP_WEB                           /* in the browser emulator (tools/build.py --web): web.c's exports, for
+                                           * the page beside the screen (web/emu/) */
 
 /* the store: the song (knobs, patterns, mutes) and the panel's calibration (the platform's), at their flash offsets */
 enum { OBJ_SONG, OBJ_PANEL, OBJ_NOBJ };
